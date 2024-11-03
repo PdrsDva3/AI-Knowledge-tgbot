@@ -2,15 +2,22 @@ from aiogram import Bot, Dispatcher, types, Router
 from aiogram.filters import Command
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 from db.db import check_id
 from teacher.registration import registration, keyboard
 # from teacher.registration.registration import start_registration
 from config import TOKEN_TG, dp, bot, router
 
-@dp.message(StateFilter(None), Command("start"))
-async def cmd_start(message: types.Message, state: FSMContext):
+
+# 1) \settings_teacher - установка настроек
+# 2) \get_students - получить список учеников в очереди, сортированных по \settings
+# 3) \start - описание ручек
+# 4) \registration - изменить свою анкету
+# 5) \all_students - список всех принятых студентов
+
+
+async def start(message: types.Message):
     user, i = check_id(message.from_user.id)
     if i == 0:
         kb = [
@@ -26,21 +33,41 @@ async def cmd_start(message: types.Message, state: FSMContext):
                 InlineKeyboardButton(text="изменить данные", callback_data="teacher"),
             ],
             [
-                InlineKeyboardButton(text="continue", callback_data="reg_teacher_ok"),
+                InlineKeyboardButton(text="setting", callback_data="setting_teacher"),
+            ],
+            [
+                InlineKeyboardButton(text="new students", callback_data="new_students_teacher"),
+            ],
+            [
+                InlineKeyboardButton(text="my students", callback_data="my_students_teacher"),
+            ],
+            [
+                InlineKeyboardButton(text="help", callback_data="help"),
             ]
         ]
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
         DATA = """
-        Здраствуйте,
-        name        {}
-        surname      {}
-        grade {}
-        sphere {}
-        description {}
-        """
-        await message.answer(DATA.format(user.name, user.surname, user.grade, user.sphere, user.description), reply_markup=keyboard)
+            Здраствуйте,
+            name        {}
+            surname     {}
+            grade       {}
+            sphere      {}
+            description {}
+            """
+        await message.answer(DATA.format(user.name, user.surname, user.grade, user.sphere, user.description),
+                             reply_markup=keyboard)
 
+
+@dp.message(StateFilter(None), Command("start"))
+async def cmd_start(message: types.Message, state: FSMContext):
+    await start(message)
+
+
+
+@dp.callback_query(lambda c: c.data == "start")
+async def process_callback(callback_query: CallbackQuery, state: FSMContext):
+    await start(callback_query)
 
 if __name__ == "__main__":
     dp.run_polling(bot)
