@@ -93,7 +93,14 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "sphere_teacher")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Введите ваше имя", reply_markup=kb.sphere_teacher())
+    user_data = await state.get_data()
+    s = user_data['sphere']
+    if s == FreeData:
+        await callback_query.message.edit_text("Выберите ваши сферы деятельности", reply_markup=kb.sphere_teacher())
+    else:
+        await callback_query.message.edit_text("Выбрано " + s + "\nВыберите дополнительно или "
+                                                                "нажмите повторно чтобы убрать",
+                                               reply_markup=kb.sphere_teacher())
     await state.set_state(RegistrateTeacher.sphere)
 
 @dp.callback_query(lambda c: c.data.split("_")[-2:] == ["sphere", "teacher"])
@@ -104,10 +111,14 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     if s == FreeData:
         await state.update_data(sphere=tt)
     elif tt in s:
-        await state.update_data(sphere=", ".join([i for i in "".join(s.split(tt)).split(", ") if i != ""]))
+        tt = ", ".join([i for i in "".join(s.split(tt)).split(", ") if i != ""])
+        await state.update_data(sphere=tt)
     else:
-        await state.update_data(sphere=s + ", " + tt)
-    await do_text(state)
+        tt = s + ", " + tt
+        await state.update_data(sphere=tt)
+    await callback_query.message.edit_text(text="Выбрано " + tt + "\nВыберите дополнительно или "
+                                                                "нажмите повторно чтобы убрать",
+                                     reply_markup=kb.sphere_teacher())
     await state.set_state(RegistrateTeacher.wait)
 
 
