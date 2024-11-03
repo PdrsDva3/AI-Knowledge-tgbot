@@ -52,6 +52,8 @@ async def insert_all(user_id, role, name, grade, sphere, bio):
             """)
         cursor.execute(get_all_query, (user_id, role, name, grade, sphere, bio))
 
+        connection.commit()
+
     except (Exception, psycopg2.DatabaseError) as error:
         return error
     finally:
@@ -75,9 +77,13 @@ async def update_all(user_id, role, name, grade, sphere, bio):
             """)
         cursor.execute(get_all_query, (role, name, grade, sphere, bio, user_id))
 
+        connection.commit()
+
     except (Exception, psycopg2.DatabaseError) as error:
         return error
     finally:
         if connection:
             cursor.close()
             connection.close()
+
+
