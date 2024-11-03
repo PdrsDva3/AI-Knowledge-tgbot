@@ -1,5 +1,7 @@
 import asyncio
 import logging
+from pkgutil import get_data
+
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ContentType
 from aiogram.filters import StateFilter
@@ -10,7 +12,10 @@ from aiogram.types import InlineKeyboardMarkup, CallbackQuery
 from aiogram.utils.formatting import Bold, Text, as_marked_list, as_list
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 from aiogram import F
+# from netaddr.ip.iana import query
+
 from config import API_KEY
+from db_requests import get_all, update_all, insert_all
 
 API_KEY = API_KEY
 
@@ -54,7 +59,8 @@ def registration_okay_kb() -> InlineKeyboardMarkup:
         [types.InlineKeyboardButton(text="Уровень", callback_data="grade")],
         [types.InlineKeyboardButton(text="Сфера", callback_data="sphere")],
         [types.InlineKeyboardButton(text="Краткий рассказ", callback_data="bio")],
-        [types.InlineKeyboardButton(text="Всё верно", callback_data="all_is_okay")]
+        [types.InlineKeyboardButton(text="Всё верно", callback_data="all_is_okay")],
+        [types.InlineKeyboardButton(text="Назад (нажимая после изменений, они не сохранятся)", callback_data="info")],
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
@@ -63,12 +69,12 @@ def registration_okay_kb() -> InlineKeyboardMarkup:
 # NLP, CV,RecSys, Audio, Classic ML, любой
 def choose_sphere_kb() -> InlineKeyboardMarkup:
     buttons = [
-        [types.InlineKeyboardButton(text="NLP", callback_data="egor")],
-        [types.InlineKeyboardButton(text="CV", callback_data="cv")],
-        [types.InlineKeyboardButton(text="RecSys", callback_data="recsys")],
-        [types.InlineKeyboardButton(text="Audio", callback_data="audio")],
-        [types.InlineKeyboardButton(text="Classic ML", callback_data="classic")],
-        [types.InlineKeyboardButton(text="Любой", callback_data="any")],
+        [types.InlineKeyboardButton(text="NLP", callback_data="NLP_sphere")],
+        [types.InlineKeyboardButton(text="CV", callback_data="CV_sphere")],
+        [types.InlineKeyboardButton(text="RecSys", callback_data="RecSys_sphere")],
+        [types.InlineKeyboardButton(text="Audio", callback_data="Audio_sphere")],
+        [types.InlineKeyboardButton(text="Classic ML", callback_data="Classic_ML_sphere")],
+        [types.InlineKeyboardButton(text="Любой", callback_data="Any_sphere")],
         [types.InlineKeyboardButton(text="Назад", callback_data="return")]
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -78,11 +84,11 @@ def choose_sphere_kb() -> InlineKeyboardMarkup:
 # no_work, intern, junior, middle. senior
 def choose_grade_kb() -> InlineKeyboardMarkup:
     buttons = [
-        [types.InlineKeyboardButton(text="No work", callback_data="no_work")],
-        [types.InlineKeyboardButton(text="Intern", callback_data="intern")],
-        [types.InlineKeyboardButton(text="Junior", callback_data="junior")],
-        [types.InlineKeyboardButton(text="Middle", callback_data="middle")],
-        [types.InlineKeyboardButton(text="Senior", callback_data="senior")],
+        [types.InlineKeyboardButton(text="No work", callback_data="no_work_grade")],
+        [types.InlineKeyboardButton(text="Intern", callback_data="intern_grade")],
+        [types.InlineKeyboardButton(text="Junior", callback_data="junior_grade")],
+        [types.InlineKeyboardButton(text="Middle", callback_data="middle_grade")],
+        [types.InlineKeyboardButton(text="Senior", callback_data="senior_grade")],
         [types.InlineKeyboardButton(text="Назад", callback_data="return")]
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -149,15 +155,14 @@ DATA = """
 
 Ваша информация на данный момент:
 
-Имя {name}
-Уровень: {grade}
-Сфера: {sphere}
+Имя:    {}
+Уровень:    {}
+Сфера:  {}
 Краткий рассказ:
-
-{bio}
+{}
 """
 
-NoneData = "null"
+NoneData = ""
 
 
 async def print_text(state: FSMContext):
@@ -179,14 +184,18 @@ async def print_text(state: FSMContext):
                                      reply_markup=registration_kb())
 
 
-@dp.callback_query(lambda query: query.data == "registration")
+@dp.callback_query(lambda c: c.data == "registration")
 async def cmd_registration(callback: CallbackQuery, state: FSMContext):
-    await state.update_data(name=NoneData, grade=NoneData, sphere=NoneData, bio=NoneData, call=callback)
+    if user_info := await get_all(callback.from_user.id):
+        await state.update_data(name=user_info["name"], grade=user_info["grade"], sphere=user_info["sphere"], bio=user_info["bio"])
+    else:
+        await state.update_data(name=NoneData, grade=NoneData, sphere=NoneData, bio=NoneData, call=callback)
+
     await print_text(state)
 
 
 @dp.callback_query(lambda c: c.data == "return")
-async def start_registration(call: CallbackQuery, state: FSMContext):
+async def start_registration(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Registration.wait)
     await print_text(state)
 
@@ -197,48 +206,67 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
     await state.set_state(Registration.name)
     await state.update_data(call=callback_query)
 
+
 # !!!!!!!! grade choice
 @dp.callback_query(lambda c: c.data == "grade")
 async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
-    await bot.answer_callback_query(callback_query.id)
-    await callback_query.message.edit_text("Выберите уровень", reply_markup=choose_grade_kb())  # todo
+    await callback_query.message.edit_text("Выберите уровень подготовки", reply_markup=choose_grade_kb())
     await state.set_state(Registration.grade)
-    await state.update_data(call=callback_query)
 
-@dp.callback_query(lambda c: c.data == "grade")
+
+
+@dp.callback_query(lambda c: c.data.split("_")[-1] == "grade")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await state.update_data(grade=" ".join(callback_query.data.split("_")[:-2]))
+    await state.update_data(grade=" ".join(callback_query.data.split("_")[:-1]).capitalize())
     await print_text(state)
     await state.set_state(Registration.wait)
+
+
 # !!!!!!!!
+
 
 # ///////////// sphere choice
 @dp.callback_query(lambda c: c.data == "sphere")
 async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Выберите сферу программирования", reply_markup=choose_sphere_kb())  # todo
+    user_data = await state.get_data()
+    s = user_data['sphere']
+    if s == NoneData:
+        await callback_query.message.edit_text("Выберите ваши сферы деятельности", reply_markup=choose_sphere_kb())
+    else:
+        await callback_query.message.edit_text("Выбрано " + s + "\nВыберите дополнительно или "
+                                                                "нажмите повторно чтобы убрать",
+                                               reply_markup=choose_sphere_kb())
     await state.set_state(Registration.sphere)
-    await state.update_data(call=callback_query)
 
-@dp.callback_query(lambda c: c.data == "sphere")
+
+
+@dp.callback_query(lambda c: c.data.split("_")[-1] == "sphere")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     s = user_data['sphere']
-    tt = " ".join(callback_query.data.split("_")[:-2])
+    tt = " ".join(callback_query.data.split("_")[:-1])
     if s == NoneData:
         await state.update_data(sphere=tt)
     elif tt in s:
-        await state.update_data(sphere=", ".join([i for i in "".join(s.split(tt)).split(", ") if i != ""]))
+        tt = ", ".join([i for i in "".join(s.split(tt)).split(", ") if i != ""])
+        await state.update_data(sphere=tt)
     else:
-        await state.update_data(sphere=s + ", " + tt)
-    await print_text(state)
+        tt = s + ", " + tt
+        await state.update_data(sphere=tt)
+    await callback_query.message.edit_text(text="Выбрано " + tt + "\nВыберите дополнительно или\n "
+                                                                  "нажмите повторно чтобы убрать",
+                                           reply_markup=choose_sphere_kb())
     await state.set_state(Registration.wait)
-#/////////////
+
+
+# /////////////
 
 @dp.callback_query(lambda c: c.data == "bio")
 async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Введите краткий рассказ", reply_markup=return_kb())  # todo
+    await callback_query.message.edit_text("Введите краткий рассказ", reply_markup=return_kb())
     await state.set_state(Registration.bio)
     await state.update_data(call=callback_query)
+
 
 ##################################################################################################### state processing
 @dp.message(StateFilter(Registration.name))
@@ -246,18 +274,6 @@ async def text(message: types.Message, state: FSMContext):
     await state.update_data(name=message.text)
     await message.delete()
     await print_text(state)
-    await state.set_state(Registration.wait)
-
-
-@dp.message(StateFilter(Registration.grade))
-async def text(message: types.Message, state: FSMContext):
-    await state.update_data(grade=message.text)
-    await state.set_state(Registration.wait)
-
-
-@dp.message(StateFilter(Registration.sphere))
-async def text(message: types.Message, state: FSMContext):
-    await state.update_data(sphere=message.text)
     await state.set_state(Registration.wait)
 
 
@@ -272,12 +288,22 @@ async def text(message: types.Message, state: FSMContext):
 # ----------------------------------------------------------
 @dp.callback_query(lambda c: c.data == "all_is_okay")
 async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    user_id = callback_query.from_user.id
     user_data = await state.get_data()
-    n = user_data['name']
-    s = user_data['surname']
-    call = user_data['call']
-    await call.message.edit_text(text="Здраствуйте {} {}".format(n, s))
+    if await get_all(user_id):
+        await update_all(user_id, "student", user_data["name"], user_data["grade"], user_data["sphere"], user_data["bio"])
+    else:
+        await insert_all(user_id, "student", user_data["name"], user_data["grade"], user_data["sphere"], user_data["bio"])
     await state.clear()
+    await bot.edit_message_text(
+        chat_id=callback_query.message.chat.id,
+        message_id=callback_query.message.message_id,
+        text="""
+            Регистрация успешно завершена.
+            Все изменения внесены)
+            """,
+        reply_markup=info_and_continue_kb()
+    )
 
 
 # -=-=-=-=-=-=-=---=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-==-=-= running
