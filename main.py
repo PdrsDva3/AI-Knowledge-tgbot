@@ -1,18 +1,14 @@
 import asyncio
 import logging
 import random
-from pkgutil import get_data
 
 from aiogram import Bot, Dispatcher, types
-from aiogram.enums import ContentType
 from aiogram.filters import StateFilter
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import InlineKeyboardMarkup, CallbackQuery
-from aiogram.utils.formatting import Bold, Text, as_marked_list, as_list
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
-from aiogram import F
+from aiogram.utils.formatting import Bold, Text, as_list
 
 from config import API_KEY
 from db_requests import get_all, update_all, insert_all, get_all_teachers
@@ -111,10 +107,11 @@ def return_go_kb() -> InlineKeyboardMarkup:
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
 
+
 def search_or_filters_kb() -> InlineKeyboardMarkup:
     buttons = [
-        [types.InlineKeyboardButton(text="Искать", callback_data="search")],
-        [types.InlineKeyboardButton(text="Фильтры", callback_data="filters")],
+        [types.InlineKeyboardButton(text="Искать без фильтров", callback_data="search")],
+        [types.InlineKeyboardButton(text="Искать с фильтрами", callback_data="filters")],
         [types.InlineKeyboardButton(text="Назад", callback_data="info")]
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -171,7 +168,6 @@ async def student_info(callback: types.CallbackQuery):
     )
 
 
-# todo
 # ----------------------------------------------------------------------------------------------------------------- registration
 class Registration(StatesGroup):
     name = State()
@@ -215,11 +211,11 @@ async def print_text(state: FSMContext):
                                      reply_markup=registration_kb())
 
 
-# [{'id': 574957210, 'role': 'student', 'name': 'Денис', 'grade': 'No work', 'sphere': 'Any', 'bio': 'Я хотдог'}]
 @dp.callback_query(lambda c: c.data == "registration")
 async def cmd_registration(callback: CallbackQuery, state: FSMContext):
-    user_info = (await get_all(callback.from_user.id))[0]
+    user_info = await get_all(callback.from_user.id)
     if user_info:
+        user_info = user_info[0]
         await state.update_data(name=user_info["name"], grade=user_info["grade"], sphere=user_info["sphere"],
                                 bio=user_info["bio"], call=callback)
     else:
@@ -266,7 +262,7 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
     if s == NoneData:
         await callback_query.message.edit_text("Выберите ваши сферы деятельности", reply_markup=choose_sphere_kb())
     else:
-        await callback_query.message.edit_text("Выбрано " + s + "\nВыберите дополнительно или "
+        await callback_query.message.edit_text("Выбрано " + s + "\n\nВыберите дополнительно или "
                                                                 "нажмите повторно чтобы убрать",
                                                reply_markup=choose_sphere_kb())
     await state.set_state(Registration.sphere)
@@ -325,7 +321,7 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
                          user_data["bio"])
     else:
         await insert_all(user_id, "student", user_data["name"], user_data["grade"], user_data["sphere"],
-                         user_data["bio"])
+                         user_data["bio"], callback_query.from_user.username)
 
     await state.clear()
     await bot.edit_message_text(
@@ -339,10 +335,10 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
     )
 
 
-# todo
-# =========================================------------------------------------------------------------------ GO!
+# =========================================------------------------------------------------------------------ GO! (without filter)
 @dp.callback_query(lambda c: c.data == "cmd_go")
-async def cmd_go(callback: types.CallbackQuery):
+async def cmd_go(callback: types.CallbackQuery, state: FSMContext):
+    await state.clear()
     await bot.edit_message_text(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
@@ -368,9 +364,6 @@ TEACHER_DATA = """
 """
 
 
-class Searching(StatesGroup):
-    search = State()
-
 async def print_teacher(callback: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
     teacher_list = data.get("list", [])
@@ -383,10 +376,12 @@ async def print_teacher(callback: types.CallbackQuery, state: FSMContext):
             reply_markup=searching_kb()
         )
     else:
+        await state.clear()
         await callback.message.edit_text(
             text="Учителя закончились((",
             reply_markup=return_go_kb()
         )
+
 
 @dp.callback_query(lambda c: c.data == "search")
 async def searching(callback: types.CallbackQuery, state: FSMContext):
@@ -396,6 +391,7 @@ async def searching(callback: types.CallbackQuery, state: FSMContext):
         await state.update_data(list=random_list, index=0)
         await print_teacher(callback, state)
 
+
 @dp.callback_query(lambda c: c.data == "next_teacher")
 async def searching_next(callback: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
@@ -403,7 +399,204 @@ async def searching_next(callback: types.CallbackQuery, state: FSMContext):
 
     await state.update_data(index=index)
     await print_teacher(callback, state)
-#todo
+
+
+# =========================================------------------------------------------------------------------ GO! (with filter)
+
+class Filters(StatesGroup):
+    grade = State()
+    sphere = State()
+    wait = State()
+
+
+FILTER_DATA = """
+В данный момент выбраны фильтры:
+
+Уровень:   {}
+
+Сфера:   {}
+"""
+
+
+def cmd_filters_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [types.InlineKeyboardButton(text="Выбрать уровень", callback_data="gradef")],
+        [types.InlineKeyboardButton(text="Выбрать сферу", callback_data="spheref")],
+        [types.InlineKeyboardButton(text="Применить и перейти", callback_data="fsearch")],
+        [types.InlineKeyboardButton(text="Назад", callback_data="cmd_go")]
+
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+def fsearching_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [types.InlineKeyboardButton(text="Принять", callback_data="agree"),
+         types.InlineKeyboardButton(text="Вперед", callback_data="fnext_teacher")],
+        [types.InlineKeyboardButton(text="Назад", callback_data="filters")]
+
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+def fchoose_sphere_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [types.InlineKeyboardButton(text="NLP", callback_data="NLP_spheref")],
+        [types.InlineKeyboardButton(text="CV", callback_data="CV_spheref")],
+        [types.InlineKeyboardButton(text="RecSys", callback_data="RecSys_spheref")],
+        [types.InlineKeyboardButton(text="Audio", callback_data="Audio_spheref")],
+        [types.InlineKeyboardButton(text="Classic ML", callback_data="Classic_ML_spheref")],
+        [types.InlineKeyboardButton(text="Любой", callback_data="Any_spheref")],
+        [types.InlineKeyboardButton(text="Назад", callback_data="returnf")]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+# no_work, intern, junior, middle. senior
+def fchoose_grade_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [types.InlineKeyboardButton(text="No work", callback_data="no_work_gradef")],
+        [types.InlineKeyboardButton(text="Intern", callback_data="intern_gradef")],
+        [types.InlineKeyboardButton(text="Junior", callback_data="junior_gradef")],
+        [types.InlineKeyboardButton(text="Middle", callback_data="middle_gradef")],
+        [types.InlineKeyboardButton(text="Senior", callback_data="senior_gradef")],
+        [types.InlineKeyboardButton(text="Назад", callback_data="returnf")]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+async def print_filters(state: FSMContext):
+    filter_data = await state.get_data()
+
+    g = filter_data['grade']
+    s = filter_data['sphere']
+
+    call = filter_data['call']
+    await call.message.edit_text(text=FILTER_DATA.format(g, s),
+                                 reply_markup=cmd_filters_kb())
+
+
+@dp.callback_query(lambda c: c.data == "filters")
+async def cmd_filters(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await state.update_data(grade=NoneData, sphere=NoneData, call=callback)
+    await print_filters(state)
+
+
+@dp.callback_query(lambda c: c.data == "returnf")
+async def choice_returning(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(Filters.wait)
+    await print_filters(state)
+
+
+# !!!!!!!! grade choice
+@dp.callback_query(lambda c: c.data == "gradef")
+async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    await callback_query.message.edit_text("Выберите уровень подготовки", reply_markup=fchoose_grade_kb())
+    await state.set_state(Filters.grade)
+
+
+@dp.callback_query(lambda c: c.data.split("_")[-1] == "gradef")
+async def process_callback(callback_query: CallbackQuery, state: FSMContext):
+    await state.update_data(grade=" ".join(callback_query.data.split("_")[:-1]).capitalize())
+    await print_filters(state)
+    await state.set_state(Filters.wait)
+
+
+# !!!!!!!!
+
+
+# ///////////// sphere choice
+@dp.callback_query(lambda c: c.data == "spheref")
+async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
+    filter_data = await state.get_data()
+    s = filter_data['sphere']
+    if s == NoneData:
+        await callback_query.message.edit_text("Выберите ваши сферы деятельности", reply_markup=fchoose_sphere_kb())
+    else:
+        await callback_query.message.edit_text("Выбрано " + s + "\n\nВыберите дополнительно или "
+                                                                "нажмите повторно чтобы убрать",
+                                               reply_markup=fchoose_sphere_kb())
+    await state.set_state(Filters.sphere)
+
+
+@dp.callback_query(lambda c: c.data.split("_")[-1] == "spheref")
+async def process_callback(callback_query: CallbackQuery, state: FSMContext):
+    filter_data = await state.get_data()
+    s = filter_data['sphere']
+    tt = " ".join(callback_query.data.split("_")[:-1])
+    if s == NoneData:
+        await state.update_data(sphere=tt)
+    elif tt in s:
+        tt = ", ".join([i for i in "".join(s.split(tt)).split(", ") if i != ""])
+        await state.update_data(sphere=tt)
+    else:
+        tt = s + ", " + tt
+        await state.update_data(sphere=tt)
+    await callback_query.message.edit_text(text="Выбрано " + tt + "\n\nВыберите дополнительно или\n "
+                                                                  "нажмите повторно чтобы убрать",
+                                           reply_markup=fchoose_sphere_kb())
+    await state.set_state(Filters.wait)
+
+
+# /////////////
+
+async def get_random_teachersf() -> list[dict]:
+    list_ = await get_all_teachers()
+    random.shuffle(list_)
+    return list_
+
+
+TEACHER_DATAf = """
+Имя:    {}
+Уровень:    {}
+Сфера:    {}
+Краткий рассказ:
+{}
+"""
+
+
+async def print_teacherf(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    teacher_list = data.get("list", [])
+    index = data.get("index", 0)
+
+    if index < len(teacher_list):
+        teacher = teacher_list[index]
+        await callback.message.edit_text(
+            text=TEACHER_DATAf.format(teacher["name"], teacher["grade"], teacher["sphere"], teacher["bio"]),
+            reply_markup=fsearching_kb()
+        )
+    else:
+        await state.clear()
+        await callback.message.edit_text(
+            text="Учителя закончились((",
+            reply_markup=return_go_kb()
+        )
+
+
+@dp.callback_query(lambda c: c.data == "fsearch")
+async def searching(callback: types.CallbackQuery, state: FSMContext):
+    teacher_data = await state.get_data()  # todo прочитать из стейта grade и sphere и НАПИСАТЬ SQL-ЗАПРОС с импользованием фильтров
+    if "list" not in teacher_data:
+        random_list = await get_random_teachersf()
+        await state.update_data(list=random_list, index=0)
+        await print_teacherf(callback, state)
+
+
+@dp.callback_query(lambda c: c.data == "fnext_teacher")
+async def searching_next(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    index = data.get("index", 0) + 1
+
+    await state.update_data(index=index)
+    await print_teacherf(callback, state)
+
+
 # -=-=-=-=-=-=-=---=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-==-=-= running
 logging.basicConfig(level=logging.DEBUG)
 
@@ -415,5 +608,10 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 
-#todo добавление никнеймов при регистрации
-#todo
+# 1)
+# todo сделать поиск с учетом фильтров
+
+# 2)
+# todo раскинуть всё по папкам
+# todo реализовать отправление-принятие заявки
+# todo реализовать список учителей

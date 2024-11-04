@@ -42,15 +42,15 @@ async def get_all(user_id: int):
             connection.close()
 
 
-async def insert_all(user_id, role, name, grade, sphere, bio):
+async def insert_all(user_id, role, name, grade, sphere, bio, nickname):
     connection = db_connection()
     cursor = connection.cursor()
 
     try:
         get_all_query = sql.SQL("""
-            insert into users (id, role, name, grade, sphere, bio) VALUES (%s, %s, %s, %s, %s, %s)
+            insert into users (id, role, name, grade, sphere, bio, nickname) VALUES (%s, %s, %s, %s, %s, %s, %s)
             """)
-        cursor.execute(get_all_query, (user_id, role, name, grade, sphere, bio))
+        cursor.execute(get_all_query, (user_id, role, name, grade, sphere, bio, nickname))
 
         connection.commit()
 
@@ -93,7 +93,7 @@ async def get_all_teachers():
 
     try:
         get_all_teachers_query = sql.SQL("""
-            SELECT name, grade, sphere, bio FROM users WHERE role = %s
+            SELECT name, grade, sphere, bio FROM users WHERE role = %s and flag = true
             """)
         cursor.execute(get_all_teachers_query, ("teacher",))
 
