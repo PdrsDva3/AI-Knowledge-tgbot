@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import random
 from pkgutil import get_data
 
 from aiogram import Bot, Dispatcher, types
@@ -12,10 +13,9 @@ from aiogram.types import InlineKeyboardMarkup, CallbackQuery
 from aiogram.utils.formatting import Bold, Text, as_marked_list, as_list
 from aiogram.utils.keyboard import ReplyKeyboardBuilder, InlineKeyboardBuilder
 from aiogram import F
-# from netaddr.ip.iana import query
 
 from config import API_KEY
-from db_requests import get_all, update_all, insert_all
+from db_requests import get_all, update_all, insert_all, get_all_teachers
 
 API_KEY = API_KEY
 
@@ -23,6 +23,7 @@ bot = Bot(token=API_KEY)
 dp = Dispatcher()
 
 
+# todo
 # ========================================================================================================= keyboards
 def starting_kb() -> InlineKeyboardMarkup:
     buttons = [
@@ -35,7 +36,7 @@ def starting_kb() -> InlineKeyboardMarkup:
 def info_and_continue_kb() -> InlineKeyboardMarkup:
     buttons = [
         [types.InlineKeyboardButton(text="Регистрация", callback_data="registration")],
-        [types.InlineKeyboardButton(text="GO!", callback_data="go")],
+        [types.InlineKeyboardButton(text="GO!", callback_data="cmd_go")],
         [types.InlineKeyboardButton(text="Список учителей", callback_data="teacher_list")]
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -103,6 +104,35 @@ def return_kb() -> InlineKeyboardMarkup:
     return keyboard
 
 
+def return_go_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [types.InlineKeyboardButton(text="Назад", callback_data="cmd_go")]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+def search_or_filters_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [types.InlineKeyboardButton(text="Искать", callback_data="search")],
+        [types.InlineKeyboardButton(text="Фильтры", callback_data="filters")],
+        [types.InlineKeyboardButton(text="Назад", callback_data="info")]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+def searching_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [types.InlineKeyboardButton(text="Принять", callback_data="agree"),
+         types.InlineKeyboardButton(text="Вперед", callback_data="next_teacher")
+         ],
+        [types.InlineKeyboardButton(text="Назад", callback_data="cmd_go")]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+# todo
 # ======================================================================================================
 
 
@@ -141,6 +171,7 @@ async def student_info(callback: types.CallbackQuery):
     )
 
 
+# todo
 # ----------------------------------------------------------------------------------------------------------------- registration
 class Registration(StatesGroup):
     name = State()
@@ -183,12 +214,14 @@ async def print_text(state: FSMContext):
         await call.message.edit_text(DATA.format(n, g, s, b),
                                      reply_markup=registration_kb())
 
+
 # [{'id': 574957210, 'role': 'student', 'name': 'Денис', 'grade': 'No work', 'sphere': 'Any', 'bio': 'Я хотдог'}]
 @dp.callback_query(lambda c: c.data == "registration")
 async def cmd_registration(callback: CallbackQuery, state: FSMContext):
     user_info = (await get_all(callback.from_user.id))[0]
     if user_info:
-        await state.update_data(name=user_info["name"], grade=user_info["grade"], sphere=user_info["sphere"], bio=user_info["bio"], call=callback)
+        await state.update_data(name=user_info["name"], grade=user_info["grade"], sphere=user_info["sphere"],
+                                bio=user_info["bio"], call=callback)
     else:
         await state.update_data(name=NoneData, grade=NoneData, sphere=NoneData, bio=NoneData, call=callback)
 
@@ -215,7 +248,6 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
     await state.set_state(Registration.grade)
 
 
-
 @dp.callback_query(lambda c: c.data.split("_")[-1] == "grade")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     await state.update_data(grade=" ".join(callback_query.data.split("_")[:-1]).capitalize())
@@ -238,7 +270,6 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
                                                                 "нажмите повторно чтобы убрать",
                                                reply_markup=choose_sphere_kb())
     await state.set_state(Registration.sphere)
-
 
 
 @dp.callback_query(lambda c: c.data.split("_")[-1] == "sphere")
@@ -269,7 +300,6 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
     await state.update_data(call=callback_query)
 
 
-##################################################################################################### state processing
 @dp.message(StateFilter(Registration.name))
 async def text(message: types.Message, state: FSMContext):
     await state.update_data(name=message.text)
@@ -286,16 +316,16 @@ async def text(message: types.Message, state: FSMContext):
     await state.set_state(Registration.wait)
 
 
-# ----------------------------------------------------------
 @dp.callback_query(lambda c: c.data == "all_is_okay")
 async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
     user_id = callback_query.from_user.id
     user_data = await state.get_data()
     if await get_all(user_id):
-        await update_all(user_id, "student", user_data["name"], user_data["grade"], user_data["sphere"], user_data["bio"])
+        await update_all(user_id, "student", user_data["name"], user_data["grade"], user_data["sphere"],
+                         user_data["bio"])
     else:
-        await insert_all(user_id, "student", user_data["name"], user_data["grade"], user_data["sphere"], user_data["bio"])
-
+        await insert_all(user_id, "student", user_data["name"], user_data["grade"], user_data["sphere"],
+                         user_data["bio"])
 
     await state.clear()
     await bot.edit_message_text(
@@ -309,6 +339,71 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
     )
 
 
+# todo
+# =========================================------------------------------------------------------------------ GO!
+@dp.callback_query(lambda c: c.data == "cmd_go")
+async def cmd_go(callback: types.CallbackQuery):
+    await bot.edit_message_text(
+        chat_id=callback.message.chat.id,
+        message_id=callback.message.message_id,
+        text="""
+            Ты можешь выставить определенные фильтры \nили искать по всем подряд
+            """,
+        reply_markup=search_or_filters_kb()
+    )
+
+
+async def get_random_teachers() -> list[dict]:
+    list_ = await get_all_teachers()
+    random.shuffle(list_)
+    return list_
+
+
+TEACHER_DATA = """
+Имя:    {}
+Уровень:    {}
+Сфера:    {}
+Краткий рассказ:
+{}
+"""
+
+
+class Searching(StatesGroup):
+    search = State()
+
+async def print_teacher(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    teacher_list = data.get("list", [])
+    index = data.get("index", 0)
+
+    if index < len(teacher_list):
+        teacher = teacher_list[index]
+        await callback.message.edit_text(
+            text=TEACHER_DATA.format(teacher["name"], teacher["grade"], teacher["sphere"], teacher["bio"]),
+            reply_markup=searching_kb()
+        )
+    else:
+        await callback.message.edit_text(
+            text="Учителя закончились((",
+            reply_markup=return_go_kb()
+        )
+
+@dp.callback_query(lambda c: c.data == "search")
+async def searching(callback: types.CallbackQuery, state: FSMContext):
+    teacher_data = await state.get_data()
+    if "list" not in teacher_data:
+        random_list = await get_random_teachers()
+        await state.update_data(list=random_list, index=0)
+        await print_teacher(callback, state)
+
+@dp.callback_query(lambda c: c.data == "next_teacher")
+async def searching_next(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    index = data.get("index", 0) + 1
+
+    await state.update_data(index=index)
+    await print_teacher(callback, state)
+#todo
 # -=-=-=-=-=-=-=---=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=-=-==-=-= running
 logging.basicConfig(level=logging.DEBUG)
 
@@ -319,3 +414,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+#todo добавление никнеймов при регистрации
+#todo

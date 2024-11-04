@@ -87,3 +87,29 @@ async def update_all(user_id, role, name, grade, sphere, bio):
             connection.close()
 
 
+async def get_all_teachers():
+    connection = db_connection()
+    cursor = connection.cursor()
+
+    try:
+        get_all_teachers_query = sql.SQL("""
+            SELECT name, grade, sphere, bio FROM users WHERE role = %s
+            """)
+        cursor.execute(get_all_teachers_query, ("teacher",))
+
+        rows = cursor.fetchall()
+
+        user_info = [
+            {"name": row[0], "grade": row[1], "sphere": row[2], "bio": row[3]}
+            for row in rows
+        ]
+
+        return user_info
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        return error
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+
