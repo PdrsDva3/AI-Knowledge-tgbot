@@ -8,7 +8,7 @@ from aiogram.filters import StateFilter
 # 4) Текстовое описание себя
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup
 
 import teacher.model
 from db.db import check_id, add_user
@@ -65,7 +65,7 @@ async def start_registration(call: CallbackQuery, state: FSMContext):
                                 call=call)
     elif i == 1:
         await state.update_data(name=user.name, surname=user.surname, grade=user.grade, sphere=user.sphere,
-                                description=user.description, call=call )
+                                description=user.description, call=call)
     await do_text(state)
 
 
@@ -172,14 +172,20 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     d = user_data['description']
     call = user_data['call']
     user = teacher.model.Teacher(
-                id=callback_query.from_user.id,
-                type="Teacher",
-                name=n,
-                surname=s,
-                grade=g,
-                sphere=sp,
-                description=d,
-            )
+        id=callback_query.from_user.id,
+        type="Teacher",
+        name=n,
+        surname=s,
+        grade=g,
+        sphere=sp,
+        description=d,
+    )
     add_user(user)
-    await call.message.edit_text(text="Здраствуйте {} {}".format(n, s))
+    kb = [
+        [
+            InlineKeyboardButton(text="Продолжить", callback_data="start"),
+        ]]
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
+    await call.message.edit_text(text="Данные успешно сохранены", reply_markup=keyboard)
     await state.clear()

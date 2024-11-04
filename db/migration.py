@@ -28,7 +28,9 @@ def migration_up():
     surname        varchar,
     grade varchar,
     sphere varchar, 
-    description varchar);
+    description varchar,
+    sort integer default 1,
+    show bool default false);
         """)
 
         cur.execute(create)  # Выполняем запрос на создание таблицы

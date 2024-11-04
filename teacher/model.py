@@ -7,8 +7,9 @@ class Teacher:
     grade: str
     sphere: str
     description: str
-
-    def __init__(self, id, type, name, surname, grade, sphere, description):
+    sort: int
+    show: bool
+    def __init__(self, id, type, name, surname, grade, sphere, description, sort, show):
         self.id = id
         self.type = type
         self.name = name
@@ -16,3 +17,5 @@ class Teacher:
         self.grade = grade
         self.sphere = sphere
         self.description = description
+        self.sort = sort
+        self.show = show
