@@ -56,8 +56,8 @@ def registration_okay_kb() -> InlineKeyboardMarkup:
         [types.InlineKeyboardButton(text="Уровень", callback_data="grade")],
         [types.InlineKeyboardButton(text="Сфера", callback_data="sphere")],
         [types.InlineKeyboardButton(text="Краткий рассказ", callback_data="bio")],
-        [types.InlineKeyboardButton(text="Всё верно", callback_data="all_is_okay")],
-        [types.InlineKeyboardButton(text="Назад (нажимая после изменений, они не сохранятся)", callback_data="info")],
+        [types.InlineKeyboardButton(text="Назад (без сохранения)", callback_data="info"),
+        types.InlineKeyboardButton(text="Сохранить", callback_data="all_is_okay")]
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
@@ -129,6 +129,57 @@ def searching_kb() -> InlineKeyboardMarkup:
     return keyboard
 
 
+def cmd_filters_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [types.InlineKeyboardButton(text="Выбрать уровень", callback_data="gradef")],
+        [types.InlineKeyboardButton(text="Выбрать сферу", callback_data="spheref")],
+        [types.InlineKeyboardButton(text="Применить и перейти", callback_data="fsearch")],
+        [types.InlineKeyboardButton(text="Назад", callback_data="cmd_go")]
+
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+def fsearching_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [types.InlineKeyboardButton(text="Принять", callback_data="agree"),
+         types.InlineKeyboardButton(text="Вперед", callback_data="fnext_teacher")],
+        [types.InlineKeyboardButton(text="Назад", callback_data="filters")]
+
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+def fchoose_sphere_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [types.InlineKeyboardButton(text="NLP", callback_data="NLP_spheref")],
+        [types.InlineKeyboardButton(text="CV", callback_data="CV_spheref")],
+        [types.InlineKeyboardButton(text="RecSys", callback_data="RecSys_spheref")],
+        [types.InlineKeyboardButton(text="Audio", callback_data="Audio_spheref")],
+        [types.InlineKeyboardButton(text="Classic ML", callback_data="Classic_ML_spheref")],
+        [types.InlineKeyboardButton(text="Любой", callback_data="Any_spheref")],
+        [types.InlineKeyboardButton(text="Назад", callback_data="returnf")]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+# no_work, intern, junior, middle. senior
+def fchoose_grade_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [types.InlineKeyboardButton(text="No work", callback_data="no_work_gradef")],
+        [types.InlineKeyboardButton(text="Intern", callback_data="intern_gradef")],
+        [types.InlineKeyboardButton(text="Junior", callback_data="junior_gradef")],
+        [types.InlineKeyboardButton(text="Middle", callback_data="middle_gradef")],
+        [types.InlineKeyboardButton(text="Senior", callback_data="senior_gradef")],
+        [types.InlineKeyboardButton(text="Назад", callback_data="returnf")]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
 # todo
 # ======================================================================================================
 
@@ -149,21 +200,22 @@ async def cmd_start(message: types.Message):
         reply_markup=starting_kb()
     )
 
+INFO_TEXT="""
+Здесь ты можешь увидеть описание своих возможностей как студента.
+        
+    Регистрация/изменение данных - заполнить или изменить свою информацию.
+    
+    GO! - поиск учителей
+    
+    Список учителей - список всех принятых учителей
+"""
 
 @dp.callback_query(lambda query: query.data == "info")
 async def student_info(callback: types.CallbackQuery):
     await bot.edit_message_text(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
-        text="""
-        Здесь ты можешь увидеть описание своих возможностей как студента.
-        
-        Регистрация/изменение данных - заполнить или изменить свою информацию.
-        
-        GO! - поиск учителей
-        
-        Список учителей - список всех принятых учителей
-        """,
+        text=INFO_TEXT,
         reply_markup=info_and_continue_kb()
     )
 
@@ -311,6 +363,15 @@ async def text(message: types.Message, state: FSMContext):
     await print_text(state)
     await state.set_state(Registration.wait)
 
+ALL_OKAY_TEXT="""
+Регистрация успешно завершена. Все изменения внесены)
+            
+    Регистрация/изменение данных - заполнить или изменить свою информацию.
+    
+    GO! - поиск учителей
+    
+    Список учителей - список всех принятых учителей
+"""
 
 @dp.callback_query(lambda c: c.data == "all_is_okay")
 async def process_callback(callback_query: types.CallbackQuery, state: FSMContext):
@@ -327,10 +388,7 @@ async def process_callback(callback_query: types.CallbackQuery, state: FSMContex
     await bot.edit_message_text(
         chat_id=callback_query.message.chat.id,
         message_id=callback_query.message.message_id,
-        text="""
-            Регистрация успешно завершена.
-            Все изменения внесены)
-            """,
+        text=ALL_OKAY_TEXT,
         reply_markup=info_and_continue_kb()
     )
 
@@ -416,57 +474,6 @@ FILTER_DATA = """
 
 Сфера:   {}
 """
-
-
-def cmd_filters_kb() -> InlineKeyboardMarkup:
-    buttons = [
-        [types.InlineKeyboardButton(text="Выбрать уровень", callback_data="gradef")],
-        [types.InlineKeyboardButton(text="Выбрать сферу", callback_data="spheref")],
-        [types.InlineKeyboardButton(text="Применить и перейти", callback_data="fsearch")],
-        [types.InlineKeyboardButton(text="Назад", callback_data="cmd_go")]
-
-    ]
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
-    return keyboard
-
-
-def fsearching_kb() -> InlineKeyboardMarkup:
-    buttons = [
-        [types.InlineKeyboardButton(text="Принять", callback_data="agree"),
-         types.InlineKeyboardButton(text="Вперед", callback_data="fnext_teacher")],
-        [types.InlineKeyboardButton(text="Назад", callback_data="filters")]
-
-    ]
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
-    return keyboard
-
-
-def fchoose_sphere_kb() -> InlineKeyboardMarkup:
-    buttons = [
-        [types.InlineKeyboardButton(text="NLP", callback_data="NLP_spheref")],
-        [types.InlineKeyboardButton(text="CV", callback_data="CV_spheref")],
-        [types.InlineKeyboardButton(text="RecSys", callback_data="RecSys_spheref")],
-        [types.InlineKeyboardButton(text="Audio", callback_data="Audio_spheref")],
-        [types.InlineKeyboardButton(text="Classic ML", callback_data="Classic_ML_spheref")],
-        [types.InlineKeyboardButton(text="Любой", callback_data="Any_spheref")],
-        [types.InlineKeyboardButton(text="Назад", callback_data="returnf")]
-    ]
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
-    return keyboard
-
-
-# no_work, intern, junior, middle. senior
-def fchoose_grade_kb() -> InlineKeyboardMarkup:
-    buttons = [
-        [types.InlineKeyboardButton(text="No work", callback_data="no_work_gradef")],
-        [types.InlineKeyboardButton(text="Intern", callback_data="intern_gradef")],
-        [types.InlineKeyboardButton(text="Junior", callback_data="junior_gradef")],
-        [types.InlineKeyboardButton(text="Middle", callback_data="middle_gradef")],
-        [types.InlineKeyboardButton(text="Senior", callback_data="senior_gradef")],
-        [types.InlineKeyboardButton(text="Назад", callback_data="returnf")]
-    ]
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
-    return keyboard
 
 
 async def print_filters(state: FSMContext):
