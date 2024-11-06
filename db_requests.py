@@ -93,7 +93,7 @@ async def get_all_teachers():
 
     try:
         get_all_teachers_query = sql.SQL("""
-            SELECT name, grade, sphere, bio FROM users WHERE role = %s and flag = true
+            SELECT name, grade, sphere, description FROM teacher WHERE type = %s and show = true
             """)
         cursor.execute(get_all_teachers_query, ("teacher",))
 
