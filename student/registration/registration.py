@@ -1,3 +1,6 @@
+"""
+Реализация регистрации 'студента'
+"""
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -47,10 +50,11 @@ async def print_text(state: FSMContext):
                                      reply_markup=kb.registration_okay_kb())
     else:
         await call.message.edit_text(DATA.format(n, g, s, b),
-                                     reply_markup=kb. registration_kb())
+                                     reply_markup=kb.dynamic_choosing_kb(n, g, s, b))  # kb.registration_kb() - была,
+                                                                                # но она без галочек, Денчику не кайф
 
 
-# [{'id': 574957210, 'role': 'student', 'name': 'Денис', 'grade': 'No work', 'sphere': 'Any', 'bio': 'Я хотдог'}]
+# пример user_info [{'id': 574957210, 'role': 'student', 'name': 'Денис', 'grade': 'No work', 'sphere': 'Any', 'bio': 'Я хотдог'}]
 @dp.callback_query(lambda c: c.data == "registration")
 async def cmd_registration(callback: CallbackQuery, state: FSMContext):
     user_info = await get_all(callback.from_user.id)
@@ -72,7 +76,7 @@ async def start_registration(callback: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "name")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Введите ваше имя", reply_markup=kb. return_kb())
+    await callback_query.message.edit_text("Введите ваше имя", reply_markup=kb.return_kb())
     await state.set_state(Registration.name)
     await state.update_data(call=callback_query)
 
@@ -80,7 +84,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
 # !!!!!!!! grade choice
 @dp.callback_query(lambda c: c.data == "grade")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Выберите уровень подготовки", reply_markup=kb. choose_grade_kb())
+    await callback_query.message.edit_text("Выберите уровень подготовки", reply_markup=kb.choose_grade_kb())
     await state.set_state(Registration.grade)
 
 
@@ -100,11 +104,11 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     s = user_data['sphere']
     if s == NoneData:
-        await callback_query.message.edit_text("Выберите ваши сферы деятельности", reply_markup=kb. choose_sphere_kb())
+        await callback_query.message.edit_text("Выберите ваши сферы деятельности", reply_markup=kb.choose_sphere_kb())
     else:
         await callback_query.message.edit_text("Выбрано " + s + "\nВыберите дополнительно или "
                                                                 "нажмите повторно чтобы убрать",
-                                               reply_markup=kb. choose_sphere_kb())
+                                               reply_markup=kb.choose_sphere_kb())
     await state.set_state(Registration.sphere)
 
 
@@ -123,7 +127,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
         await state.update_data(sphere=tt)
     await callback_query.message.edit_text(text="Выбрано " + tt + "\nВыберите дополнительно или\n "
                                                                   "нажмите повторно чтобы убрать",
-                                           reply_markup=kb. choose_sphere_kb())
+                                           reply_markup=kb.choose_sphere_kb())
     await state.set_state(Registration.wait)
 
 
@@ -131,7 +135,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "bio")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Введите краткий рассказ", reply_markup=kb. return_kb())
+    await callback_query.message.edit_text("Введите краткий рассказ", reply_markup=kb.return_kb())
     await state.set_state(Registration.bio)
     await state.update_data(call=callback_query)
 
@@ -152,7 +156,7 @@ async def text(message: Message, state: FSMContext):
     await state.set_state(Registration.wait)
 
 
-ALL_OKAY_TEXT="""
+ALL_OKAY_TEXT = """
 Регистрация успешно завершена.
 Все изменения внесены)
     
@@ -162,6 +166,7 @@ ALL_OKAY_TEXT="""
     
     Список учителей - список всех принятых учителей
 """
+
 
 @dp.callback_query(lambda c: c.data == "all_is_okay")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
