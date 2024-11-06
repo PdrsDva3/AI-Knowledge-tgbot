@@ -18,7 +18,191 @@ import student.search.keyboard
 import student.registration.keyboard
 import student.registration.registration
 import student.search.filters
+from aiogram import Bot, Dispatcher, types, Router
+from aiogram.filters import Command
+from aiogram.filters import StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
+import db.migration
+from db.db import check_id
+from teacher.registration import registration, keyboard
+from teacher.setting import setting, keyboard
+# from teacher.registration.registration import start_registration
+from config import TOKEN_TG, dp, bot, router
+
+
+
+# todo text
+# ========================================================================================================= keyboards
+def starting_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton(text="student", callback_data="info")],
+        [InlineKeyboardButton(text="teacher", callback_data="teacher")],
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+def info_and_continue_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton(text="Регистрация", callback_data="registration")],
+        [InlineKeyboardButton(text="GO!", callback_data="cmd_go")],
+        [InlineKeyboardButton(text="Список учителей", callback_data="teacher_list")]
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+def return_go_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton(text="Назад", callback_data="cmd_go")]
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+def cmd_filters_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [types.InlineKeyboardButton(text="Выбрать уровень", callback_data="gradef")],
+        [types.InlineKeyboardButton(text="Выбрать сферу", callback_data="spheref")],
+        [types.InlineKeyboardButton(text="Применить и перейти", callback_data="fsearch")],
+        [types.InlineKeyboardButton(text="Назад", callback_data="cmd_go")]
+
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
+# todo
+# ======================================================================================================
+
+@dp.callback_query(lambda c: c.data == "start")
+async def process_callback(callback_query: CallbackQuery, state: FSMContext):
+    user, i = check_id(callback_query.from_user.id)
+    if i == 0:
+        kb = [
+            [
+                InlineKeyboardButton(text="teacher", callback_data="teacher"),
+            ]]
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
+        await callback_query.message.edit_text("Здраствуйте, пройдите регистрацию", reply_markup=keyboard)
+    else:
+        kb = [
+            [
+                InlineKeyboardButton(text="изменить данные", callback_data="teacher"),
+            ],
+            [
+                InlineKeyboardButton(text="setting", callback_data="setting_teacher"),
+            ],
+            [
+                InlineKeyboardButton(text="new students", callback_data="new_students_teacher"),
+            ],
+            [
+                InlineKeyboardButton(text="my students", callback_data="my_students_teacher"),
+            ],
+            [
+                InlineKeyboardButton(text="help", callback_data="help"),
+            ]
+        ]
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
+        DATA = """
+                Здраствуйте,
+                name        {}
+                surname     {}
+                grade       {}
+                sphere      {}
+                description {}
+                """
+        await callback_query.message.edit_text(DATA.format(user.name, user.surname, user.grade, user.sphere, user.description),
+                             reply_markup=keyboard)
+
+
+@dp.message(Command("start"))
+async def cmd_start(message: Message):
+    user, i = check_id(message.from_user.id)
+    print(i, message.from_user.id)
+    if i == 0:
+        kb = [
+        [InlineKeyboardButton(text="student", callback_data="info")],
+        [InlineKeyboardButton(text="teacher", callback_data="teacher")],
+    ]
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
+        await message.answer("Здраствуйте, пройдите регистрацию", reply_markup=keyboard)
+    else:
+        kb = [
+            [
+                InlineKeyboardButton(text="изменить данные", callback_data="teacher"),
+            ],
+            [
+                InlineKeyboardButton(text="setting", callback_data="setting_teacher"),
+            ],
+            [
+                InlineKeyboardButton(text="new students", callback_data="new_students_teacher"),
+            ],
+            [
+                InlineKeyboardButton(text="my students", callback_data="my_students_teacher"),
+            ],
+            [
+                InlineKeyboardButton(text="help", callback_data="help"),
+            ]
+        ]
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
+        DATA = """
+                    Здраствуйте,
+                    name        {}
+                    surname     {}
+                    grade       {}
+                    sphere      {}
+                    description {}
+                    """
+        await message.answer(DATA.format(user.name, user.surname, user.grade, user.sphere, user.description),
+
+
+
+                             INFO_TEXT = """
+Здесь ты можешь увидеть описание своих возможностей как студента.
+        
+    Регистрация/изменение данных - заполнить или изменить свою информацию.
+    
+    GO! - поиск учителей
+    
+    Список учителей - список всех принятых учителей
+"""
+
+
+@dp.callback_query(lambda query: query.data == "info")
+async def student_info(callback: CallbackQuery):
+    await bot.edit_message_text(
+        chat_id=callback.message.chat.id,
+        message_id=callback.message.message_id,
+        text=INFO_TEXT,
+        reply_markup=info_and_continue_kb()
+    )
+
+
+logging.basicConfig(level=logging.DEBUG)
+
+
+async def main():
+    await dp.start_polling(bot)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+
+# 1)
+# todo сделать поиск с учетом фильтров
+
+# 2)
+# todo раскинуть всё по папкам
+# todo реализовать отправление-принятие заявки
+# todo
+# реализовать список учителей
 
 # @ dp.message(ContentType.PHOTO)
 # async def handle_photo(message: Message, state: FSMContext):
@@ -81,106 +265,3 @@ import student.search.filters
 #     # Здесь можно добавить дополнительную логику для обработки видео-сообщения
 #
 #     await message.answer(f"Спасибо за видео-сообщение! Файл ID: {video_note_file_id}")
-
-
-# todo text
-# ========================================================================================================= keyboards
-def starting_kb() -> InlineKeyboardMarkup:
-    buttons = [
-        [InlineKeyboardButton(text="student", callback_data="info")],
-        [InlineKeyboardButton(text="teacher", callback_data="teacher")],
-    ]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return keyboard
-
-
-def info_and_continue_kb() -> InlineKeyboardMarkup:
-    buttons = [
-        [InlineKeyboardButton(text="Регистрация", callback_data="registration")],
-        [InlineKeyboardButton(text="GO!", callback_data="cmd_go")],
-        [InlineKeyboardButton(text="Список учителей", callback_data="teacher_list")]
-    ]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return keyboard
-
-
-def return_go_kb() -> InlineKeyboardMarkup:
-    buttons = [
-        [InlineKeyboardButton(text="Назад", callback_data="cmd_go")]
-    ]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return keyboard
-
-
-def cmd_filters_kb() -> InlineKeyboardMarkup:
-    buttons = [
-        [types.InlineKeyboardButton(text="Выбрать уровень", callback_data="gradef")],
-        [types.InlineKeyboardButton(text="Выбрать сферу", callback_data="spheref")],
-        [types.InlineKeyboardButton(text="Применить и перейти", callback_data="fsearch")],
-        [types.InlineKeyboardButton(text="Назад", callback_data="cmd_go")]
-
-    ]
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
-    return keyboard
-
-
-# todo
-# ======================================================================================================
-
-
-@dp.message(Command("start"))
-async def cmd_start(message: Message):
-    content = as_list(
-        Text(
-            "Hello, ",
-            Bold(message.from_user.first_name),
-            ". Это бот для поиска менторов и менти."
-            " Пожалуйста выбери свой роль. Студент - ..., а Учитель - ... "
-
-        )
-    )
-    await message.answer(
-        **content.as_kwargs(),
-        reply_markup=starting_kb()
-    )
-
-
-INFO_TEXT = """
-Здесь ты можешь увидеть описание своих возможностей как студента.
-        
-    Регистрация/изменение данных - заполнить или изменить свою информацию.
-    
-    GO! - поиск учителей
-    
-    Список учителей - список всех принятых учителей
-"""
-
-
-@dp.callback_query(lambda query: query.data == "info")
-async def student_info(callback: CallbackQuery):
-    await bot.edit_message_text(
-        chat_id=callback.message.chat.id,
-        message_id=callback.message.message_id,
-        text=INFO_TEXT,
-        reply_markup=info_and_continue_kb()
-    )
-
-
-logging.basicConfig(level=logging.DEBUG)
-
-
-async def main():
-    await dp.start_polling(bot)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
-
-# 1)
-# todo сделать поиск с учетом фильтров
-
-# 2)
-# todo раскинуть всё по папкам
-# todo реализовать отправление-принятие заявки
-# todo
-# реализовать список учителей
