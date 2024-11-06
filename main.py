@@ -32,7 +32,6 @@ from teacher.setting import setting, keyboard
 from config import TOKEN_TG, dp, bot, router
 
 
-# todo text
 # ========================================================================================================= keyboards
 def starting_kb() -> InlineKeyboardMarkup:
     buttons = [
@@ -74,7 +73,6 @@ def cmd_filters_kb() -> InlineKeyboardMarkup:
     return keyboard
 
 
-# todo
 # ======================================================================================================
 
 @dp.callback_query(lambda c: c.data == "start")
@@ -190,10 +188,8 @@ if __name__ == "__main__":
 # todo сделать поиск с учетом фильтров
 
 # 2)
-# todo раскинуть всё по папкам
 # todo реализовать отправление-принятие заявки
-# todo
-# реализовать список учителей
+# todo реализовать список учителей
 
 # @ dp.message(ContentType.PHOTO)
 # async def handle_photo(message: Message, state: FSMContext):

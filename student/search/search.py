@@ -61,11 +61,12 @@ async def print_teacher(callback: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "search")
 async def searching(callback: CallbackQuery, state: FSMContext):
-    teacher_data = await state.get_data()
-    if "list" not in teacher_data:
-        random_list = await get_random_teachers()
-        await state.update_data(list=random_list, index=0)
-        await print_teacher(callback, state)
+    # бесполезные строки, но могут помочь при развитии функционала (state чистится в cmd_go)
+    # teacher_data = await state.get_data()
+    # if "list" not in teacher_data:
+    random_list = await get_random_teachers()
+    await state.update_data(list=random_list, index=0)
+    await print_teacher(callback, state)
 
 
 @dp.callback_query(lambda c: c.data == "next_teacher")

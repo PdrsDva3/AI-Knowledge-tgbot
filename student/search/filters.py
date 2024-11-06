@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery
 
-from db_requests import get_all_teachers
+from db_requests import get_all_teachers, get_filter_teachers
 from student.search import keyboard as kb
 
 from config import dp
@@ -60,10 +60,21 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data.split("_")[-1] == "gradef")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await state.update_data(grade=" ".join(callback_query.data.split("_")[:-1]).capitalize())
-    await print_filters(state)
+    filter_data = await state.get_data()
+    g = filter_data['grade']
+    tt = " ".join(callback_query.data.split("_")[:-1])
+    if g == NoneData:
+        await state.update_data(grade=tt)
+    elif tt in g:
+        tt = ", ".join([i for i in "".join(g.split(tt)).split(", ") if i != ""])
+        await state.update_data(grade=tt)
+    else:
+        tt = g + ", " + tt
+        await state.update_data(grade=tt)
+    await callback_query.message.edit_text(text="Выбрано " + tt + "\n\nВыберите дополнительно или\n "
+                                                                  "нажмите повторно чтобы убрать",
+                                           reply_markup=kb.fchoose_grade_kb())
     await state.set_state(Filters.wait)
-
 
 # !!!!!!!!
 
@@ -103,11 +114,6 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
 
 # /////////////
 
-async def get_random_teachersf() -> list[dict]:
-    list_ = await get_all_teachers()
-    random.shuffle(list_)
-    return list_
-
 
 TEACHER_DATAf = """
 Имя:    {}
@@ -137,11 +143,20 @@ async def print_teacherf(callback: CallbackQuery, state: FSMContext):
         )
 
 
+async def get_random_teachersf(grade, sphere) -> list[dict]:
+    list_ = await get_filter_teachers(grade, sphere)
+    random.shuffle(list_)
+    return list_
+
+
 @dp.callback_query(lambda c: c.data == "fsearch")
 async def searching(callback: CallbackQuery, state: FSMContext):
-    teacher_data = await state.get_data()  # todo прочитать из стейта grade и sphere и НАПИСАТЬ SQL-ЗАПРОС с импользованием фильтров
+    teacher_data = await state.get_data()
+    gr = teacher_data["grade"]
+    sp = teacher_data["sphere"]
+    print(type(sp), sp)
     if "list" not in teacher_data:
-        random_list = await get_random_teachersf()
+        random_list = await get_random_teachersf(gr, sp)
         await state.update_data(list=random_list, index=0)
         await print_teacherf(callback, state)
 

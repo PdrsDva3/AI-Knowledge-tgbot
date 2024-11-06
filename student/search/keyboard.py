@@ -70,11 +70,11 @@ def fchoose_sphere_kb() -> InlineKeyboardMarkup:
 # no_work, intern, junior, middle. senior
 def fchoose_grade_kb() -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton(text="No work", callback_data="no_work_gradef")],
-        [InlineKeyboardButton(text="Intern", callback_data="intern_gradef")],
-        [InlineKeyboardButton(text="Junior", callback_data="junior_gradef")],
-        [InlineKeyboardButton(text="Middle", callback_data="middle_gradef")],
-        [InlineKeyboardButton(text="Senior", callback_data="senior_gradef")],
+        [InlineKeyboardButton(text="No work", callback_data="No_work_gradef")],
+        [InlineKeyboardButton(text="Intern", callback_data="Intern_gradef")],
+        [InlineKeyboardButton(text="Junior", callback_data="Junior_gradef")],
+        [InlineKeyboardButton(text="Middle", callback_data="Middle_gradef")],
+        [InlineKeyboardButton(text="Senior", callback_data="Senior_gradef")],
         [InlineKeyboardButton(text="Назад", callback_data="returnf")]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
