@@ -25,6 +25,9 @@ def check_id(user_id: int) -> (teacher.model.Teacher, int):
         check_query = sql.SQL("SELECT EXISTS (SELECT 1 FROM users WHERE id = %s)")
         cursor.execute(check_query, (user_id,))
         exists = cursor.fetchone()[0]
+        TMP = sql.SQL("SELECT * from users WHERE id = %s")
+        cursor.execute(TMP, (user_id,))
+        print(cursor.fetchone())
         if exists:
             # Если пользователь существует, извлекаем информацию
             get_all_query = sql.SQL("SELECT * FROM users WHERE id = %s")
@@ -67,7 +70,7 @@ def add_user(usr: teacher.model.Teacher):
             # Обновляем данные пользователя
             update_query = sql.SQL("""
                 UPDATE users 
-                SET type = %s, name = %s, surname = %s, grade = %s, sphere = %s, description = %s
+                SET type = %s, name = %s, surname = %s, grade = %s, sphere = %s, description = %s, sort = %s, show = %s
                 WHERE id = %s
             """)
             cursor.execute(update_query, (
@@ -77,6 +80,8 @@ def add_user(usr: teacher.model.Teacher):
                 usr.grade,
                 usr.sphere,
                 usr.description,
+                usr.sort,
+                usr.show,
                 usr.id,
             ))
             cursor.connection.commit()
@@ -84,17 +89,18 @@ def add_user(usr: teacher.model.Teacher):
         elif i == 0:  # Пользователь новый
             # Добавляем нового пользователя
             insert_query = sql.SQL("""
-                INSERT INTO users (id, type, name, surname, grade, sphere, description)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO users (id, type, name, surname, grade, sphere, description, sort, show)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """)
             cursor.execute(insert_query, (
-                user.id,
-                user.type,
-                user.name,
-                user.surname,
-                user.grade,
-                user.sphere,
-                user.description
+                usr.id,
+                usr.type,
+                usr.name,
+                usr.surname,
+                usr.grade,
+                usr.sphere,
+                usr.description,
+                usr.sort, usr.show
             ))
 
         else:  # Произошла ошибка при проверке ID

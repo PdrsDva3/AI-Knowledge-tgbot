@@ -60,7 +60,8 @@ async def do_text(state: FSMContext):
 @dp.callback_query(lambda c: c.data == "teacher")
 async def start_registration(call: CallbackQuery, state: FSMContext):
     user, i = check_id(call.from_user.id)
-    if i == 0 | i == -1:
+    print(i, call.from_user.id)
+    if i == 0 or i == -1:
         await state.update_data(name=FreeData, surname=FreeData, grade=FreeData, sphere=FreeData, description=FreeData,
                                 call=call)
     elif i == 1:
@@ -179,6 +180,8 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
         grade=g,
         sphere=sp,
         description=d,
+        sort=1,
+        show=False
     )
     add_user(user)
     kb = [

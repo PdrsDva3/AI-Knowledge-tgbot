@@ -4,6 +4,7 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
+import db.migration
 from db.db import check_id
 from teacher.registration import registration, keyboard
 from teacher.setting import setting, keyboard
@@ -20,6 +21,7 @@ from config import TOKEN_TG, dp, bot, router
 @dp.message(StateFilter(None), Command("start"))
 async def cmd_start(message: types.Message, state: FSMContext):
     user, i = check_id(message.from_user.id)
+    print(i, message.from_user.id)
     if i == 0:
         kb = [
             [
@@ -104,4 +106,6 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
                              reply_markup=keyboard)
 
 if __name__ == "__main__":
+    db.migration.migration_down()
+    db.migration.migration_up()
     dp.run_polling(bot)
