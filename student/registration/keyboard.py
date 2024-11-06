@@ -18,8 +18,8 @@ def registration_okay_kb() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="Уровень", callback_data="grade")],
         [InlineKeyboardButton(text="Сфера", callback_data="sphere")],
         [InlineKeyboardButton(text="Краткий рассказ", callback_data="bio")],
-        [InlineKeyboardButton(text="Всё верно", callback_data="all_is_okay")],
-        [InlineKeyboardButton(text="Назад (нажимая после изменений, они не сохранятся)", callback_data="info")],
+        [InlineKeyboardButton(text="Выйти", callback_data="info"),
+         InlineKeyboardButton(text="Сохранить", callback_data="all_is_okay")]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard

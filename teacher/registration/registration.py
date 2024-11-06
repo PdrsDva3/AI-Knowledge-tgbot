@@ -29,14 +29,15 @@ class RegistrateTeacher(StatesGroup):
 
 DATA = """
 Ваши данные
-name        {}
-surname      {}
-grade {}
-sphere {}
-description {}
+Имя:         {}
+Отчество:    {}
+Уровень:     {}
+Сфера:       {}
+Описание: 
+{}
 """
 
-FreeData = "null"
+FreeData = ""
 
 
 async def do_text(state: FSMContext):
@@ -60,7 +61,6 @@ async def do_text(state: FSMContext):
 @dp.callback_query(lambda c: c.data == "teacher")
 async def start_registration(call: CallbackQuery, state: FSMContext):
     user, i = check_id(call.from_user.id)
-    print(i, call.from_user.id)
     if i == 0 or i == -1:
         await state.update_data(name=FreeData, surname=FreeData, grade=FreeData, sphere=FreeData, description=FreeData,
                                 call=call)

@@ -32,7 +32,6 @@ from teacher.setting import setting, keyboard
 from config import TOKEN_TG, dp, bot, router
 
 
-
 # todo text
 # ========================================================================================================= keyboards
 def starting_kb() -> InlineKeyboardMarkup:
@@ -48,7 +47,8 @@ def info_and_continue_kb() -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton(text="Регистрация", callback_data="registration")],
         [InlineKeyboardButton(text="GO!", callback_data="cmd_go")],
-        [InlineKeyboardButton(text="Список учителей", callback_data="teacher_list")]
+        [InlineKeyboardButton(text="Список учителей", callback_data="teacher_list")],
+        [InlineKeyboardButton(text="return", callback_data="return_to_start")]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
@@ -83,7 +83,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     if i == 0:
         kb = [
             [
-                InlineKeyboardButton(text="teacher", callback_data="teacher"),
+                InlineKeyboardButton(text="Регистрация", callback_data="teacher"),
             ]]
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
@@ -104,67 +104,58 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
             ],
             [
                 InlineKeyboardButton(text="help", callback_data="help"),
-            ]
+            ],
+            [InlineKeyboardButton(text="return", callback_data="return_to_start")]
         ]
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
         DATA = """
                 Здраствуйте,
-                name        {}
-                surname     {}
-                grade       {}
-                sphere      {}
-                description {}
+                Имя        {}
+                Отчество     {}
+                Уровень       {}
+                Сфера      {}
+                Описание {}
                 """
-        await callback_query.message.edit_text(DATA.format(user.name, user.surname, user.grade, user.sphere, user.description),
-                             reply_markup=keyboard)
+        await callback_query.message.edit_text(
+            DATA.format(user.name, user.surname, user.grade, user.sphere, user.description),
+            reply_markup=keyboard)
+
+
+@dp.callback_query(lambda c: c.data == "return_to_start")
+async def cmd_start(callback_query: CallbackQuery):
+    kb = [
+        [InlineKeyboardButton(text="student", callback_data="info")],
+        [InlineKeyboardButton(text="teacher", callback_data="start")],
+    ]
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
+    await callback_query.message.edit_text("Здраствуйте", reply_markup=keyboard)
+
+
+INFO_TEXT = """
+Здесь ты можешь увидеть описание своих возможностей как студента.
+        
+    Регистрация/изменение данных - заполнить или изменить свою информацию.
+    
+    GO! - поиск учителей
+    
+    Список учителей - список всех принятых учителей
+"""
 
 
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
-    user, i = check_id(message.from_user.id)
-    print(i, message.from_user.id)
-    if i == 0:
-        kb = [
+    kb = [
         [InlineKeyboardButton(text="student", callback_data="info")],
-        [InlineKeyboardButton(text="teacher", callback_data="teacher")],
+        [InlineKeyboardButton(text="teacher", callback_data="start")],
     ]
 
-        keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
-        await message.answer("Здраствуйте, пройдите регистрацию", reply_markup=keyboard)
-    else:
-        kb = [
-            [
-                InlineKeyboardButton(text="изменить данные", callback_data="teacher"),
-            ],
-            [
-                InlineKeyboardButton(text="setting", callback_data="setting_teacher"),
-            ],
-            [
-                InlineKeyboardButton(text="new students", callback_data="new_students_teacher"),
-            ],
-            [
-                InlineKeyboardButton(text="my students", callback_data="my_students_teacher"),
-            ],
-            [
-                InlineKeyboardButton(text="help", callback_data="help"),
-            ]
-        ]
-
-        keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
-        DATA = """
-                    Здраствуйте,
-                    name        {}
-                    surname     {}
-                    grade       {}
-                    sphere      {}
-                    description {}
-                    """
-        await message.answer(DATA.format(user.name, user.surname, user.grade, user.sphere, user.description),
+    keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
+    await message.answer("Здраствуйте", reply_markup=keyboard)
 
 
-
-                             INFO_TEXT = """
+INFO_TEXT = """
 Здесь ты можешь увидеть описание своих возможностей как студента.
         
     Регистрация/изменение данных - заполнить или изменить свою информацию.

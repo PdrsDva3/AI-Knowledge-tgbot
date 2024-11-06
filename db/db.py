@@ -27,7 +27,6 @@ def check_id(user_id: int) -> (teacher.model.Teacher, int):
         exists = cursor.fetchone()[0]
         TMP = sql.SQL("SELECT * from teacher WHERE id = %s")
         cursor.execute(TMP, (user_id,))
-        print(cursor.fetchone())
         if exists:
             # Если пользователь существует, извлекаем информацию
             get_all_query = sql.SQL("SELECT * FROM teacher WHERE id = %s")
@@ -51,7 +50,6 @@ def check_id(user_id: int) -> (teacher.model.Teacher, int):
             return user, 0
 
     except (Exception, psycopg2.DatabaseError) as error:
-        print(-1)
         return error, -1,
     finally:
         if connection:
@@ -65,6 +63,7 @@ def add_user(usr: teacher.model.Teacher):
 
     try:
         user, i = check_id(usr.id)
+
 
         if i == 1:  # Пользователь уже существует
             # Обновляем данные пользователя

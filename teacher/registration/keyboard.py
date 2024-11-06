@@ -72,19 +72,19 @@ def reg_teacher() -> InlineKeyboardMarkup:
     """
     kb = [
         [
-            InlineKeyboardButton(text="name", callback_data="name_teacher")
+            InlineKeyboardButton(text="Имя", callback_data="name_teacher")
         ],
         [
-            InlineKeyboardButton(text="surname", callback_data="surname_teacher")
+            InlineKeyboardButton(text="Отчество", callback_data="surname_teacher")
         ],
         [
-            InlineKeyboardButton(text="grade", callback_data="grade_teacher")
+            InlineKeyboardButton(text="Уровень", callback_data="grade_teacher")
         ],
         [
-            InlineKeyboardButton(text="sphere", callback_data="sphere_teacher")
+            InlineKeyboardButton(text="Сфера", callback_data="sphere_teacher")
         ],
         [
-            InlineKeyboardButton(text="description", callback_data="description_teacher"),
+            InlineKeyboardButton(text="Краткий рассказ", callback_data="description_teacher"),
         ]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)

@@ -53,8 +53,9 @@ async def print_text(state: FSMContext):
 # [{'id': 574957210, 'role': 'student', 'name': 'Денис', 'grade': 'No work', 'sphere': 'Any', 'bio': 'Я хотдог'}]
 @dp.callback_query(lambda c: c.data == "registration")
 async def cmd_registration(callback: CallbackQuery, state: FSMContext):
-    user_info = (await get_all(callback.from_user.id))[0]
+    user_info = await get_all(callback.from_user.id)
     if user_info:
+        user_info = user_info[0]
         await state.update_data(name=user_info["name"], grade=user_info["grade"], sphere=user_info["sphere"],
                                 bio=user_info["bio"], call=callback)
     else:
@@ -151,6 +152,17 @@ async def text(message: Message, state: FSMContext):
     await state.set_state(Registration.wait)
 
 
+ALL_OKAY_TEXT="""
+Регистрация успешно завершена.
+Все изменения внесены)
+    
+    Регистрация/изменение данных - заполнить или изменить свою информацию.
+    
+    GO! - поиск учителей
+    
+    Список учителей - список всех принятых учителей
+"""
+
 @dp.callback_query(lambda c: c.data == "all_is_okay")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     user_id = callback_query.from_user.id
@@ -160,15 +172,12 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
                          user_data["bio"])
     else:
         await insert_all(user_id, "student", user_data["name"], user_data["grade"], user_data["sphere"],
-                         user_data["bio"])
+                         user_data["bio"], callback_query.from_user.username)
 
     await state.clear()
     await bot.edit_message_text(
         chat_id=callback_query.message.chat.id,
         message_id=callback_query.message.message_id,
-        text="""
-            Регистрация успешно завершена.
-            Все изменения внесены)
-            """,
+        text=ALL_OKAY_TEXT,
         reply_markup=kb.info_and_continue_kb()
     )
