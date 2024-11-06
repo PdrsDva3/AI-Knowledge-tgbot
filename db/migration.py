@@ -21,7 +21,7 @@ def migration_up():
     cur = conn.cursor()
     try:
         create = sql.SQL("""
-        CREATE TABLE IF NOT EXISTS users  (
+        CREATE TABLE IF NOT EXISTS teacher  (
     id              bigint NOT NULL PRIMARY KEY,
     type varchar,
     name            varchar,
@@ -47,7 +47,7 @@ def migration_down():
     conn = db_connection()
     cur = conn.cursor()
     try:
-        drop = sql.SQL("""DROP TABLE IF EXISTS users """)
+        drop = sql.SQL("""DROP TABLE IF EXISTS teacher """)
 
         cur.execute(drop)  # Выполняем запрос на создание таблицы
         conn.commit()

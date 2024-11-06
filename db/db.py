@@ -22,15 +22,15 @@ def check_id(user_id: int) -> (teacher.model.Teacher, int):
     cursor = connection.cursor()
     try:
         # Проверяем наличие пользователя с данным user_id
-        check_query = sql.SQL("SELECT EXISTS (SELECT 1 FROM users WHERE id = %s)")
+        check_query = sql.SQL("SELECT EXISTS (SELECT 1 FROM teacher WHERE id = %s)")
         cursor.execute(check_query, (user_id,))
         exists = cursor.fetchone()[0]
-        TMP = sql.SQL("SELECT * from users WHERE id = %s")
+        TMP = sql.SQL("SELECT * from teacher WHERE id = %s")
         cursor.execute(TMP, (user_id,))
         print(cursor.fetchone())
         if exists:
             # Если пользователь существует, извлекаем информацию
-            get_all_query = sql.SQL("SELECT * FROM users WHERE id = %s")
+            get_all_query = sql.SQL("SELECT * FROM teacher WHERE id = %s")
             cursor.execute(get_all_query, (user_id,))
             rows = cursor.fetchone()
             user = teacher.model.Teacher(
@@ -69,7 +69,7 @@ def add_user(usr: teacher.model.Teacher):
         if i == 1:  # Пользователь уже существует
             # Обновляем данные пользователя
             update_query = sql.SQL("""
-                UPDATE users 
+                UPDATE teacher 
                 SET type = %s, name = %s, surname = %s, grade = %s, sphere = %s, description = %s, sort = %s, show = %s
                 WHERE id = %s
             """)
@@ -89,7 +89,7 @@ def add_user(usr: teacher.model.Teacher):
         elif i == 0:  # Пользователь новый
             # Добавляем нового пользователя
             insert_query = sql.SQL("""
-                INSERT INTO users (id, type, name, surname, grade, sphere, description, sort, show)
+                INSERT INTO teacher (id, type, name, surname, grade, sphere, description, sort, show)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """)
             cursor.execute(insert_query, (
@@ -123,7 +123,7 @@ def change_show(user_id: int, show: bool):
     cursor = connection.cursor()
     try:
         update_query = sql.SQL("""
-                UPDATE users 
+                UPDATE teacher 
                 SET show = %s
                 WHERE id = %s
             """)
@@ -146,7 +146,7 @@ def change_sort(user_id: int, sort: int):
     cursor = connection.cursor()
     try:
         update_query = sql.SQL("""
-                UPDATE users 
+                UPDATE teacher 
                 SET sort = %s
                 WHERE id = %s
             """)
