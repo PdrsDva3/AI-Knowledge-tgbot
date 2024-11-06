@@ -10,7 +10,8 @@ from student.search import keyboard as kb
 
 
 @dp.callback_query(lambda c: c.data == "cmd_go")
-async def cmd_go(callback: CallbackQuery):
+async def cmd_go(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
     await bot.edit_message_text(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,

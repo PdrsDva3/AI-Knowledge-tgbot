@@ -95,7 +95,7 @@ async def get_all_teachers():
         get_all_teachers_query = sql.SQL("""
             SELECT name, grade, sphere, description FROM teacher WHERE type = %s and show = true
             """)
-        cursor.execute(get_all_teachers_query, ("teacher",))
+        cursor.execute(get_all_teachers_query, ("Teacher",))
 
         rows = cursor.fetchall()
 

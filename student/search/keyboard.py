@@ -41,6 +41,18 @@ def fsearching_kb() -> InlineKeyboardMarkup:
     return keyboard
 
 
+def cmd_filters_kb() -> InlineKeyboardMarkup:
+    buttons = [
+        [InlineKeyboardButton(text="Выбрать уровень", callback_data="gradef")],
+        [InlineKeyboardButton(text="Выбрать сферу", callback_data="spheref")],
+        [InlineKeyboardButton(text="Применить и перейти", callback_data="fsearch")],
+        [InlineKeyboardButton(text="Назад", callback_data="cmd_go")]
+
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return keyboard
+
+
 def fchoose_sphere_kb() -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton(text="NLP", callback_data="NLP_spheref")],
