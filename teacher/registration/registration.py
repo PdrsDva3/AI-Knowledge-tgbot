@@ -158,7 +158,8 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
         grade=g,
         sphere=sp,
         description=d,
-        show=False
+        show=False,
+        nickname=callback_query.from_user.username
     )
     add_user(user)
     kb = [

@@ -5,7 +5,8 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery
 
 from config import bot, dp
-from student.search import keyboard as kb
+from db.db_teacher import get_all_student
+from teacher.search import keyboard as kb
 
 
 @dp.callback_query(lambda c: c.data == "new_students_teacher")
@@ -36,42 +37,38 @@ TEACHER_DATA = """
 """
 
 
-class Searching(StatesGroup):
-    search = State()
-
-
-async def print_teacher(callback: CallbackQuery, state: FSMContext):
+async def print_search(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    teacher_list = data.get("list", [])
+    students_list = data.get("list", [])
     index = data.get("index", 0)
 
-    if index < len(teacher_list):
-        teacher = teacher_list[index]
+    if index < len(students_list):
+        teacher = students_list[index]
         await callback.message.edit_text(
             text=TEACHER_DATA.format(teacher["name"], teacher["grade"], teacher["sphere"], teacher["bio"]),
             reply_markup=kb.searching_kb()
         )
     else:
         await callback.message.edit_text(
-            text="Учителя закончились((",
+            text="студенты закончились((",
             reply_markup=kb.return_go_kb()
         )
 
 
-@dp.callback_query(lambda c: c.data == "search")
+@dp.callback_query(lambda c: c.data == "search_students")
 async def searching(callback: CallbackQuery, state: FSMContext):
     # бесполезные строки, но могут помочь при развитии функционала (state чистится в cmd_go)
     # teacher_data = await state.get_data()
     # if "list" not in teacher_data:
-    random_list = await get_random_teachers()
+    random_list = await get_random_student()
     await state.update_data(list=random_list, index=0)
-    await print_teacher(callback, state)
+    await print_search(callback, state)
 
 
-@dp.callback_query(lambda c: c.data == "next_teacher")
+@dp.callback_query(lambda c: c.data == "next_student")
 async def searching_next(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     index = data.get("index", 0) + 1
 
     await state.update_data(index=index)
-    await print_teacher(callback, state)
+    await print_search(callback, state)

@@ -38,7 +38,8 @@ def check_id(user_id: int) -> (teacher.model.Teacher, int):
                 grade=rows[2],
                 sphere=rows[3],
                 description=rows[4],
-                show=rows[5]
+                show=rows[5],
+                nickname=rows[6],
             )
             return user, 1
         else:
@@ -66,7 +67,7 @@ def add_user(usr: teacher.model.Teacher):
             # Обновляем данные пользователя
             update_query = sql.SQL("""
                 UPDATE teacher 
-                SET  name = %s, grade = %s, sphere = %s, description = %s, show = %s
+                SET  name = %s, grade = %s, sphere = %s, description = %s, show = %s, nickname = %s
                 WHERE id = %s
             """)
             cursor.execute(update_query, (
@@ -75,14 +76,15 @@ def add_user(usr: teacher.model.Teacher):
                 usr.sphere,
                 usr.description,
                 usr.show,
+                usr.nickname,
                 usr.id,
             ))
             cursor.connection.commit()
         elif i == 0:  # Пользователь новый
             # Добавляем нового пользователя
             insert_query = sql.SQL("""
-                INSERT INTO teacher (id, name, grade, sphere, description, show)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO teacher (id, name, grade, sphere, description, show, nickname)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
             """)
             cursor.execute(insert_query, (
                 usr.id,
@@ -90,7 +92,8 @@ def add_user(usr: teacher.model.Teacher):
                 usr.grade,
                 usr.sphere,
                 usr.description,
-                usr.show
+                usr.show,
+                usr.nickname
             ))
 
         else:  # Произошла ошибка при проверке ID
@@ -160,17 +163,21 @@ async def get_all(user_id: int, role: str):
 
 
 
-async def get_all_student():
+async def get_all_student(id_teacher: int):
     connection = db_connection()
     cursor = connection.cursor()
     try:
-        get_all_teachers_query = sql.SQL("""
-            SELECT name, grade, sphere, description FROM student WHERE show = true
-            """)
-        cursor.execute(get_all_teachers_query)
+        get_all_student_query = sql.SQL("""SELECT name, grade, sphere, description 
+FROM student 
+WHERE show = true AND EXISTS (
+    SELECT 1 
+    FROM teacher_student 
+    WHERE student.id = teacher_student.id_student
+    and teacher_student.id_teacher = %s
+)""")
+        cursor.execute(get_all_student_query, (id_teacher,))
 
         rows = cursor.fetchall()
-
         user_info = [
             {"name": row[0], "grade": row[1], "sphere": row[2], "bio": row[3]}
             for row in rows
@@ -190,27 +197,30 @@ all_grades = ["No_work", "Intern", "Junior", "Middle", "Senior"]
 all_spheres = ["NLP", "CV", "RecSys", "Audio", "Classic_ML", "Any"]
 
 
-async def get_filter_teachers(grade, sphere):
+async def get_filter_students(grade, sphere):
     connection = db_connection()
     cursor = connection.cursor()
 
     try:
-        fteachers_query = sql.SQL("""
+        fstudents_query = sql.SQL("""
         SELECT name, grade, sphere, description FROM student 
         WHERE 
-        grade in %s and 
-        sphere in %s and 
+        grade similar to %s and
+        sphere similar to %s and
         show = true
         """)
 
         if not grade and sphere:
-            cursor.execute(fteachers_query, (all_grades, sphere))
+            cursor.execute(fstudents_query,
+                           ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%"))
         elif not sphere and grade:
-            cursor.execute(fteachers_query, (grade, all_spheres))
+            cursor.execute(fstudents_query,
+                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(all_spheres) + ")%"))
         elif not grade and not sphere:
-            cursor.execute(fteachers_query, (all_grades, all_spheres))
+            cursor.execute(fstudents_query, ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(all_spheres) + ")%"))
         else:
-            cursor.execute(fteachers_query, (grade, sphere))
+            cursor.execute(fstudents_query,
+                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%"))
 
         rows = cursor.fetchmany(size=4)
         user_info = [

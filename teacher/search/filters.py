@@ -4,10 +4,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery
 
-from db.db_student import get_filter_teachers
-from student.search import keyboard as kb
+from db.db_teacher import get_filter_students
+from teacher.search import keyboard as kb
 
-from config import dp
+from config import dp, NoneData
 
 
 class Filters(StatesGroup):
@@ -24,8 +24,6 @@ FILTER_DATA = """
 Сфера:   {}
 """
 
-NoneData = ""
-
 
 async def print_filters(state: FSMContext):
     filter_data = await state.get_data()
@@ -38,31 +36,31 @@ async def print_filters(state: FSMContext):
                                  reply_markup=kb.cmd_filters_kb())
 
 
-@dp.callback_query(lambda c: c.data == "filters")
+@dp.callback_query(lambda c: c.data == "filters_students")
 async def cmd_filters(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await state.update_data(grade=NoneData, sphere=NoneData, call=callback)
     await print_filters(state)
 
 
-@dp.callback_query(lambda c: c.data == "returnf")
+@dp.callback_query(lambda c: c.data == "returnf_teacher")
 async def choice_returning(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Filters.wait)
     await print_filters(state)
 
 
 # !!!!!!!! grade choice
-@dp.callback_query(lambda c: c.data == "gradef")
+@dp.callback_query(lambda c: c.data == "gradef_teacher")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.message.edit_text("Выберите уровень подготовки", reply_markup=kb.fchoose_grade_kb())
     await state.set_state(Filters.grade)
 
 
-@dp.callback_query(lambda c: c.data.split("_")[-1] == "gradef")
+@dp.callback_query(lambda c: c.data.split("_")[-2:] == ["gradef", "teacher"])
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     filter_data = await state.get_data()
     g = filter_data['grade']
-    tt = " ".join(callback_query.data.split("_")[:-1])
+    tt = " ".join(callback_query.data.split("_")[:-2])
     if g == NoneData:
         await state.update_data(grade=tt)
     elif tt in g:
@@ -80,7 +78,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
 
 
 # ///////////// sphere choice
-@dp.callback_query(lambda c: c.data == "spheref")
+@dp.callback_query(lambda c: c.data == "spheref_teacher")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     filter_data = await state.get_data()
     s = filter_data['sphere']
@@ -93,11 +91,11 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     await state.set_state(Filters.sphere)
 
 
-@dp.callback_query(lambda c: c.data.split("_")[-1] == "spheref")
+@dp.callback_query(lambda c: c.data.split("_")[-2:] == ["spheref", "teacher"])
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     filter_data = await state.get_data()
     s = filter_data['sphere']
-    tt = " ".join(callback_query.data.split("_")[:-1])
+    tt = " ".join(callback_query.data.split("_")[:-2])
     if s == NoneData:
         await state.update_data(sphere=tt)
     elif tt in s:
@@ -138,18 +136,18 @@ async def print_teacherf(callback: CallbackQuery, state: FSMContext):
     else:
         await state.clear()
         await callback.message.edit_text(
-            text="Учителя закончились((",
+            text="студенты закончились((",
             reply_markup=kb.return_go_kb()
         )
 
 
 async def get_random_teachersf(grade, sphere) -> list[dict]:
-    list_ = await get_filter_teachers(grade, sphere)
+    list_ = await get_filter_students(grade, sphere)
     random.shuffle(list_)
     return list_
 
 
-@dp.callback_query(lambda c: c.data == "fsearch")
+@dp.callback_query(lambda c: c.data == "fsearch_teacher")
 async def searching(callback: CallbackQuery, state: FSMContext):
     teacher_data = await state.get_data()
     gr = teacher_data["grade"]
@@ -161,7 +159,7 @@ async def searching(callback: CallbackQuery, state: FSMContext):
         await print_teacherf(callback, state)
 
 
-@dp.callback_query(lambda c: c.data == "fnext_teacher")
+@dp.callback_query(lambda c: c.data == "fnext_student")
 async def searching_next(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     index = data.get("index", 0) + 1

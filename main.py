@@ -12,6 +12,8 @@ import db.migration
 from db.db_teacher import check_id
 from config import dp, bot
 
+import db.migration
+
 import student.registration.registration
 import student.search.search
 import student.search.filters
@@ -19,6 +21,8 @@ import student.search.filters
 import teacher.registration.registration
 import teacher.search.search
 import teacher.setting.setting
+import teacher.search.filters
+import teacher.mystudent.mystudent
 
 
 # ========================================================================================================= keyboards
@@ -171,12 +175,13 @@ async def main():
 
 if __name__ == "__main__":
     # db.migration.migration_down()
-    # db.migration.migration_up()
+    db.migration.migration_up()
     asyncio.run(main())
 
+# 1)
+# todo сделать поиск с учетом фильтров
 
-
-
+# 2)
 # todo реализовать отправление-принятие заявки
 # todo реализовать список учителей
 

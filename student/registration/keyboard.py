@@ -40,6 +40,7 @@ def dynamic_choosing_kb(name, grade, sphere, bio) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
 
+
 def registration_okay_kb() -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton(text="Имя ✅", callback_data="name")],
@@ -94,7 +95,8 @@ def info_and_continue_kb() -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton(text="Регистрация", callback_data="registration")],
         [InlineKeyboardButton(text="GO!", callback_data="cmd_go")],
-        [InlineKeyboardButton(text="Список учителей", callback_data="teacher_list")]
+        [InlineKeyboardButton(text="Список учителей", callback_data="teacher_list")],
+        [InlineKeyboardButton(text="return", callback_data="return_to_start")]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
