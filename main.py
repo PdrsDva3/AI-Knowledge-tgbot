@@ -9,6 +9,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 import db.migration
+from db.db_student import get_teacher_list
 from db.db_teacher import check_id
 from config import dp, bot
 
@@ -166,6 +167,29 @@ async def student_info(callback: CallbackQuery):
     )
 
 
+@dp.callback_query(lambda query: query.data == "teacher_list")
+async def student_info(callback: CallbackQuery):
+    list_ = await get_teacher_list(callback.from_user.id)
+
+    TEACHER_LIST="Список ваших учителей:\n"
+    if not list_:
+        for tch in list_:
+            TEACHER_LIST += f"{tch["name"]} - {tch['nickname']}\n"
+    else:
+        TEACHER_LIST="У вас пока нет учителей"
+
+    buttons = [
+        [types.InlineKeyboardButton(text="Назад", callback_data="info")]
+    ]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    await bot.edit_message_text(
+        chat_id=callback.message.chat.id,
+        message_id=callback.message.message_id,
+        text=TEACHER_LIST,
+        reply_markup=keyboard
+    )
+
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -178,10 +202,9 @@ if __name__ == "__main__":
     db.migration.migration_up()
     asyncio.run(main())
 
-# 1)
-# todo сделать поиск с учетом фильтров
 
-# 2)
+
+
 # todo реализовать отправление-принятие заявки
 # todo реализовать список учителей
 

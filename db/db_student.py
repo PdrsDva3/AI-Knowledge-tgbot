@@ -20,6 +20,10 @@ def db_connection():
 
 
 async def get_all(user_id: int):
+    """
+    :param user_id:
+    :return:
+    """
     connection = db_connection()
     cursor = connection.cursor()
 
@@ -47,6 +51,15 @@ async def get_all(user_id: int):
 
 
 async def insert_all(user_id, name, grade, sphere, bio, nickname):
+    """
+    :param user_id:
+    :param name:
+    :param grade:
+    :param sphere:
+    :param bio:
+    :param nickname:
+    :return:
+    """
     connection = db_connection()
     cursor = connection.cursor()
 
@@ -67,6 +80,14 @@ async def insert_all(user_id, name, grade, sphere, bio, nickname):
 
 
 async def update_all(user_id, name, grade, sphere, bio):
+    """
+    :param user_id:
+    :param name:
+    :param grade:
+    :param sphere:
+    :param bio:
+    :return:
+    """
     connection = db_connection()
     cursor = connection.cursor()
 
@@ -122,6 +143,11 @@ all_spheres = ["NLP", "CV", "RecSys", "Audio", "Classic_ML", "Any"]
 
 
 async def get_filter_teachers(grade, sphere):
+    """
+    :param grade:
+    :param sphere:
+    :return:
+    """
     connection = db_connection()
     cursor = connection.cursor()
 
@@ -135,13 +161,16 @@ async def get_filter_teachers(grade, sphere):
         """)
 
         if not grade and sphere:
-            cursor.execute(fteachers_query, ("%("+"|".join(all_grades)+")%", "%("+"|".join(sphere.split(", "))+")%"))
+            cursor.execute(fteachers_query,
+                           ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%"))
         elif not sphere and grade:
-            cursor.execute(fteachers_query, ("%("+"|".join(grade.split(", "))+")%", "%("+"|".join(all_spheres)+")%"))
+            cursor.execute(fteachers_query,
+                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(all_spheres) + ")%"))
         elif not grade and not sphere:
-            cursor.execute(fteachers_query, ("%("+"|".join(all_grades)+")%", "%("+"|".join(all_spheres)+")%"))
+            cursor.execute(fteachers_query, ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(all_spheres) + ")%"))
         else:
-            cursor.execute(fteachers_query, ("%("+"|".join(grade.split(", "))+")%", "%("+"|".join(sphere.split(", "))+")%"))
+            cursor.execute(fteachers_query,
+                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%"))
         # print(("%("+"|".join(grade.split(","))+")%", "%("+"|".join(sphere.split(","))+")%"))
         rows = cursor.fetchmany(size=4)
         user_info = [
@@ -161,18 +190,83 @@ async def get_filter_teachers(grade, sphere):
 
 
 async def get_teacher_by_id(user_id):
+    """
+    :param user_id:
+    :return:
+    """
     connection = db_connection()
     cursor = connection.cursor()
     try:
         get_all_teachers_query = sql.SQL("""
-            SELECT name, grade, sphere, description FROM teacher WHERE id = %s
+            SELECT name, grade, sphere, description, nickname FROM teacher WHERE id = %s
             """)
-        cursor.execute(get_all_teachers_query, (user_id, ))
+        cursor.execute(get_all_teachers_query, (user_id,))
 
         rows = cursor.fetchall()
 
         user_info = [
-            {"name": row[0], "grade": row[1], "sphere": row[2], "bio": row[3]}
+            {"name": row[0], "grade": row[1], "sphere": row[2], "bio": row[3], "nickname": row[4]}
+            for row in rows
+        ]
+
+        return user_info
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        return error
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+
+
+async def insert_into_ts(id_teacher, id_student, nick_teacher, nick_student):
+    """
+    :param id_teacher:
+    :param id_student:
+    :param nick_teacher:
+    :param nick_student:
+    """
+    connection = db_connection()
+    cursor = connection.cursor()
+
+    try:
+        get_all_teachers_query = sql.SQL("""
+            INSERT INTO teacher_student (id_teacher, id_student, nick_teacher, nick_student)
+            values (%s, %s, %s, %s)
+            """)
+        cursor.execute(get_all_teachers_query, (id_teacher, id_student, nick_teacher, nick_student))
+
+        connection.commit()
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        return error
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+
+
+async def get_teacher_list(id_student: int):
+    """
+    :param id_student:
+    :return:
+    """
+    connection = db_connection()
+    cursor = connection.cursor()
+    try:
+        get_all_student_query = sql.SQL("""SELECT name, nickname
+FROM teacher 
+WHERE show = true AND EXISTS (
+    SELECT 1 
+    FROM teacher_student 
+    WHERE teacher.id = teacher_student.id_teacher
+    and teacher_student.id_student = %s
+)""")
+        cursor.execute(get_all_student_query, (id_student,))
+
+        rows = cursor.fetchall()
+        user_info = [
+            {"name": row[0], "nickname": "@" + row[1]}
             for row in rows
         ]
 

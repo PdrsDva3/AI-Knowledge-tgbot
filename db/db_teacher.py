@@ -162,7 +162,7 @@ async def get_all(user_id: int, role: str):
 
 
 
-
+#todo мне кажется надо выводить не все, а имя и никнейм
 async def get_all_student(id_teacher: int):
     connection = db_connection()
     cursor = connection.cursor()

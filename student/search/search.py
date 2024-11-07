@@ -3,8 +3,9 @@ import random
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from debian.debfile import DATA_PART
 
-from db.db_student import get_all_teachers, get_teacher_by_id
+from db.db_student import get_all_teachers, get_teacher_by_id, insert_into_ts
 from config import bot, dp
 from student.search import keyboard as kb
 
@@ -74,21 +75,51 @@ async def searching_next(callback: CallbackQuery, state: FSMContext):
     await print_teacher(callback, state)
 
 
+STUDENT_DATA = """
+Новая заявка
+
+Имя:    {}
+Уровень:    {}
+Сфера:    {}
+Краткий рассказ:
+{}
+"""
+
+
 @dp.callback_query(lambda c: c.data == "agree")
 async def agree_request(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
+
     list_ = data["list"]
     index_ = data["index"]
+
     user_id = list_[index_]["id"]
+    user_info = list_[index_]
+
     buttons = [
         [InlineKeyboardButton(text="Принять", callback_data=f"{callback.from_user.id}_accept")],
         [InlineKeyboardButton(text="Отказать", callback_data=f"{callback.from_user.id}_deny")]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    await bot.send_message(user_id, "пришла новая заявка", reply_markup=keyboard)
+    await bot.send_message(user_id, STUDENT_DATA.format(user_info["name"], user_info["grade"],
+                                                        user_info["sphere"], user_info["bio"]), reply_markup=keyboard)
 
-RESPONSE_TEACHER_DATA="""
+    RESPONSE_TEACHER_DATA_ACCEPT = """
 Ваша заявка для
+
+Имя:       {}
+Уровень:   {}
+Сфера:     {}
+Краткий рассказ:
+{}
+
+была ПРИНЯТА
+Никнейм для связи: @{}
+"""
+
+    RESPONSE_TEACHER_DATA_DENY = """
+Ваша заявка для
+
 Имя:       {}
 Уровень:   {}
 Сфера:     {}
@@ -98,19 +129,40 @@ RESPONSE_TEACHER_DATA="""
 была ОТКЛОНЕНА
 """
 
-@dp.callback_query(lambda c: c.data.split("_")[-1] == "deny")
-async def deny_request(callback: CallbackQuery):
-    buttons = [
-        [InlineKeyboardButton(text="Принять", callback_data="ok")],
-    ]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    teacher_id = callback.from_user.id
-    teacher_info = (await get_teacher_by_id(teacher_id))[0]
-    await bot.send_message(int(callback.data.split("_")[0]), RESPONSE_TEACHER_DATA.format(teacher_info["name"], teacher_info["grade"],
-                                                                    teacher_info["sphere"], teacher_info["bio"]),
-                           reply_markup=keyboard)
-    await callback.message.delete()
+    @dp.callback_query(lambda c: c.data.split("_")[-1] == "accept")
+    async def deny_request(callback: CallbackQuery):
+        buttons = [
+            [InlineKeyboardButton(text="Ок", callback_data="ok")],
+        ]
+        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
-@dp.callback_query(lambda c: c.data == "ok")
-async def deny_request(callback: CallbackQuery):
-    await callback.message.delete()
+        teacher_id = callback.from_user.id
+        student_id = int(callback.data.split("_")[0])
+
+        teacher_info = (await get_teacher_by_id(teacher_id))[0]
+        await insert_into_ts(teacher_id, student_id, teacher_info["nickname"], callback.from_user.username)
+
+        await bot.send_message(student_id,
+                               RESPONSE_TEACHER_DATA_ACCEPT.format(teacher_info["name"], teacher_info["grade"],
+                                                                   teacher_info["sphere"], teacher_info["bio"],
+                                                                   teacher_info["nickname"]),
+                               reply_markup=keyboard)
+        await callback.message.delete()
+
+    @dp.callback_query(lambda c: c.data.split("_")[-1] == "deny")
+    async def deny_request(callback: CallbackQuery):
+        buttons = [
+            [InlineKeyboardButton(text="Ок", callback_data="ok")],
+        ]
+        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+        teacher_id = callback.from_user.id
+        teacher_info = (await get_teacher_by_id(teacher_id))[0]
+        await bot.send_message(int(callback.data.split("_")[0]),
+                               RESPONSE_TEACHER_DATA_DENY.format(teacher_info["name"], teacher_info["grade"],
+                                                                 teacher_info["sphere"], teacher_info["bio"]),
+                               reply_markup=keyboard)
+        await callback.message.delete()
+
+    @dp.callback_query(lambda c: c.data == "ok")
+    async def deny_request(callback: CallbackQuery):
+        await callback.message.delete()
