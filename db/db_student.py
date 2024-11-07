@@ -96,14 +96,14 @@ async def get_all_teachers():
     cursor = connection.cursor()
     try:
         get_all_teachers_query = sql.SQL("""
-            SELECT name, grade, sphere, description FROM teacher WHERE show = true
+            SELECT name, grade, sphere, description, id FROM teacher WHERE show = true
             """)
         cursor.execute(get_all_teachers_query)
 
         rows = cursor.fetchall()
 
         user_info = [
-            {"name": row[0], "grade": row[1], "sphere": row[2], "bio": row[3]}
+            {"name": row[0], "grade": row[1], "sphere": row[2], "bio": row[3], "id": row[4]}
             for row in rows
         ]
 
@@ -159,4 +159,28 @@ async def get_filter_teachers(grade, sphere):
             cursor.close()
             connection.close()
 
-# print(get_filter_teachers("Senior, Junior", "CV, NLP"))
+
+async def get_teacher_by_id(user_id):
+    connection = db_connection()
+    cursor = connection.cursor()
+    try:
+        get_all_teachers_query = sql.SQL("""
+            SELECT name, grade, sphere, description FROM teacher WHERE id = %s
+            """)
+        cursor.execute(get_all_teachers_query, (user_id, ))
+
+        rows = cursor.fetchall()
+
+        user_info = [
+            {"name": row[0], "grade": row[1], "sphere": row[2], "bio": row[3]}
+            for row in rows
+        ]
+
+        return user_info
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        return error
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
