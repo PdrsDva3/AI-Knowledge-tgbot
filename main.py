@@ -171,7 +171,7 @@ async def main():
 
 if __name__ == "__main__":
     # db.migration.migration_down()
-    # db.migration.migration_up()
+    db.migration.migration_up()
     asyncio.run(main())
 
 # 1)

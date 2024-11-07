@@ -154,7 +154,6 @@ async def searching(callback: CallbackQuery, state: FSMContext):
     teacher_data = await state.get_data()
     gr = teacher_data["grade"]
     sp = teacher_data["sphere"]
-    print(type(sp), sp)
     if "list" not in teacher_data:
         random_list = await get_random_teachersf(gr, sp)
         await state.update_data(list=random_list, index=0)

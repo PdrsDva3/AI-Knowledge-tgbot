@@ -129,20 +129,20 @@ async def get_filter_teachers(grade, sphere):
         fteachers_query = sql.SQL("""
         SELECT name, grade, sphere, description FROM teacher 
         WHERE 
-        grade in %s and 
-        sphere in %s and 
+        grade similar to %s and
+        sphere similar to %s and 
         show = true
         """)
 
         if not grade and sphere:
-            cursor.execute(fteachers_query, (all_grades, sphere))
+            cursor.execute(fteachers_query, ("%("+"|".join(all_grades)+")%", "%("+"|".join(sphere.split(", "))+")%"))
         elif not sphere and grade:
-            cursor.execute(fteachers_query, (grade, all_spheres))
+            cursor.execute(fteachers_query, ("%("+"|".join(grade.split(", "))+")%", "%("+"|".join(all_spheres)+")%"))
         elif not grade and not sphere:
-            cursor.execute(fteachers_query, (all_grades, all_spheres))
+            cursor.execute(fteachers_query, ("%("+"|".join(all_grades)+")%", "%("+"|".join(all_spheres)+")%"))
         else:
-            cursor.execute(fteachers_query, (grade, sphere))
-
+            cursor.execute(fteachers_query, ("%("+"|".join(grade.split(", "))+")%", "%("+"|".join(sphere.split(", "))+")%"))
+        # print(("%("+"|".join(grade.split(","))+")%", "%("+"|".join(sphere.split(","))+")%"))
         rows = cursor.fetchmany(size=4)
         user_info = [
             {"name": row[0], "grade": row[1], "sphere": row[2], "bio": row[3]}
@@ -159,4 +159,4 @@ async def get_filter_teachers(grade, sphere):
             cursor.close()
             connection.close()
 
-# print(get_filter_teachers("Junior", "CV, NLP"))
+# print(get_filter_teachers("Senior, Junior", "CV, NLP"))

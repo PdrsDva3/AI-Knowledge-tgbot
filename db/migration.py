@@ -20,24 +20,30 @@ def migration_up():
     conn = db_connection()
     cur = conn.cursor()
     try:
-        create = sql.SQL("""
-        CREATE TABLE IF NOT EXISTS teacher  (
-    id              bigint NOT NULL PRIMARY KEY,
-    name            varchar,
-    grade varchar,
-    sphere varchar, 
+        create = sql.SQL("""CREATE TABLE IF NOT EXISTS teacher
+(
+    id          bigint NOT NULL PRIMARY KEY,
+    name        varchar,
+    grade       varchar,
+    sphere      varchar,
     description varchar,
-    show bool default false);
-    
-    
-        CREATE TABLE IF NOT EXISTS student  (
-    id              bigint NOT NULL PRIMARY KEY,
-    name            varchar,
-    grade varchar,
-    sphere varchar, 
+    show        bool default false
+);
+
+CREATE index filters_grade on teacher using gin (to_tsvector('english', grade));
+CREATE index filters_sphere on teacher using gin (to_tsvector('english', sphere));
+
+
+CREATE TABLE IF NOT EXISTS student
+(
+    id          bigint NOT NULL PRIMARY KEY,
+    name        varchar,
+    grade       varchar,
+    sphere      varchar,
     description varchar,
-    show bool default false,
-    nickname varchar);
+    show        bool default false,
+    nickname    varchar
+);
         """)
 
         cur.execute(create)  # Выполняем запрос на создание таблицы
