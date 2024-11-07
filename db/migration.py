@@ -27,11 +27,16 @@ def migration_up():
     grade       varchar,
     sphere      varchar,
     description varchar,
-    show        bool default false
+    show        bool default false,
+    nickname varchar
 );
 
-CREATE index filters_grade on teacher using gin (to_tsvector('english', grade));
-CREATE index filters_sphere on teacher using gin (to_tsvector('english', sphere));
+CREATE TABLE if not exists teacher_student(
+id_teacher int,
+id_student int,
+nick_student varchar,
+nick_teacher varchar
+);
 
 
 CREATE TABLE IF NOT EXISTS student
