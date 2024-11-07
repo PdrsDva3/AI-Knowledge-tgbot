@@ -1,35 +1,24 @@
 import asyncio
 import logging
-import random
 
-from aiogram import Bot, Dispatcher, types
-from aiogram.enums import ContentType
-from aiogram.filters import StateFilter
-from aiogram.filters.command import Command
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import InlineKeyboardMarkup, CallbackQuery, InlineKeyboardButton, Message
-from aiogram.utils.formatting import Bold, Text, as_list
+from aiogram.types import Message
 
-from config import API_KEY, dp, bot
-from db_requests import get_all, update_all, insert_all, get_all_teachers
-import student.search.search
-import student.search.keyboard
-import student.registration.keyboard
-import student.registration.registration
-import student.search.filters
-from aiogram import Bot, Dispatcher, types, Router
+from aiogram import types
 from aiogram.filters import Command
-from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 import db.migration
-from db.db import check_id
-from teacher.registration import registration, keyboard
-from teacher.setting import setting, keyboard
-# from teacher.registration.registration import start_registration
-from config import TOKEN_TG, dp, bot, router
+from db.db_teacher import check_id
+from config import dp, bot
+
+import student.registration.registration
+import student.search.search
+import student.search.filters
+
+import teacher.registration.registration
+import teacher.search.search
+import teacher.setting.setting
 
 
 # ========================================================================================================= keyboards
@@ -110,13 +99,12 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
         DATA = """
                 Здраствуйте,
                 Имя        {}
-                Отчество     {}
                 Уровень       {}
                 Сфера      {}
                 Описание {}
                 """
         await callback_query.message.edit_text(
-            DATA.format(user.name, user.surname, user.grade, user.sphere, user.description),
+            DATA.format(user.name, user.grade, user.sphere, user.description),
             reply_markup=keyboard)
 
 
@@ -182,6 +170,8 @@ async def main():
 
 
 if __name__ == "__main__":
+    # db.migration.migration_down()
+    # db.migration.migration_up()
     asyncio.run(main())
 
 # 1)

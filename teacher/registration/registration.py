@@ -11,16 +11,15 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup
 
 import teacher.model
-from db.db import check_id, add_user
+from db.db_teacher import check_id, add_user
 
 import teacher.registration.keyboard as kb
 # from main import dp
-from config import TOKEN_TG, dp, bot, router
+from config import TOKEN_TG, dp, bot, router, NoneData
 
 
 class RegistrateTeacher(StatesGroup):
     name = State()
-    surname = State()
     grade = State()
     sphere = State()
     description = State()
@@ -30,42 +29,38 @@ class RegistrateTeacher(StatesGroup):
 DATA = """
 Ваши данные
 Имя:         {}
-Отчество:    {}
 Уровень:     {}
 Сфера:       {}
 Описание: 
 {}
 """
 
-FreeData = ""
-
 
 async def do_text(state: FSMContext):
     user_data = await state.get_data()
     n = user_data['name']
-    s = user_data['surname']
     g = user_data['grade']
     sp = user_data['sphere']
     d = user_data['description']
     call = user_data['call']
-    if (n != FreeData and s != FreeData and g != FreeData and d != FreeData and sp != FreeData):
+    if n != NoneData and g != NoneData and d != NoneData and sp != NoneData:
         await call.message.edit_text(text="Проверьте введенные данные и если все "
                                           "верно нажмите на соответсвующую кнопку \n\n" +
-                                          DATA.format(n, s, g, sp, d),
+                                          DATA.format(n, g, sp, d),
                                      reply_markup=kb.reg_teacher_okay())
     else:
-        await call.message.edit_text(DATA.format(n, s, g, sp, d),
-                                     reply_markup=kb.reg_teacher())
+        await call.message.edit_text(DATA.format(n, g, sp, d),
+                                     reply_markup=kb.reg_teacher(n, g, sp, d))
 
 
 @dp.callback_query(lambda c: c.data == "teacher")
 async def start_registration(call: CallbackQuery, state: FSMContext):
     user, i = check_id(call.from_user.id)
     if i == 0 or i == -1:
-        await state.update_data(name=FreeData, surname=FreeData, grade=FreeData, sphere=FreeData, description=FreeData,
+        await state.update_data(name=NoneData, grade=NoneData, sphere=NoneData, description=NoneData,
                                 call=call)
     elif i == 1:
-        await state.update_data(name=user.name, surname=user.surname, grade=user.grade, sphere=user.sphere,
+        await state.update_data(name=user.name, grade=user.grade, sphere=user.sphere,
                                 description=user.description, call=call)
     await do_text(state)
 
@@ -78,19 +73,13 @@ async def start_registration(call: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "name_teacher")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Введите ваше имя", reply_markup=kb.reg_return_teacher())
+    await callback_query.message.edit_text("Введите, как к вам обращаться", reply_markup=kb.reg_return_teacher())
     await state.set_state(RegistrateTeacher.name)
-
-
-@dp.callback_query(lambda c: c.data == "surname_teacher")
-async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Введите ваше имя", reply_markup=kb.reg_return_teacher())
-    await state.set_state(RegistrateTeacher.surname)
 
 
 @dp.callback_query(lambda c: c.data == "grade_teacher")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Введите ваше имя", reply_markup=kb.grade_teacher())
+    await callback_query.message.edit_text("Ввыберите ваш уровень", reply_markup=kb.grade_teacher())
     await state.set_state(RegistrateTeacher.grade)
 
 
@@ -105,7 +94,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     s = user_data['sphere']
-    if s == FreeData:
+    if s == NoneData:
         await callback_query.message.edit_text("Выберите ваши сферы деятельности", reply_markup=kb.sphere_teacher())
     else:
         await callback_query.message.edit_text("Выбрано " + s + "\nВыберите дополнительно или "
@@ -119,7 +108,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     s = user_data['sphere']
     tt = " ".join(callback_query.data.split("_")[:-2])
-    if s == FreeData:
+    if s == NoneData:
         await state.update_data(sphere=tt)
     elif tt in s:
         tt = ", ".join([i for i in "".join(s.split(tt)).split(", ") if i != ""])
@@ -135,21 +124,13 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "description_teacher")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Введите ваше имя", reply_markup=kb.reg_return_teacher())
+    await callback_query.message.edit_text("Введите ваше описание", reply_markup=kb.reg_return_teacher())
     await state.set_state(RegistrateTeacher.description)
 
 
 @dp.message(StateFilter(RegistrateTeacher.name))
 async def text(message: Message, state: FSMContext):
     await state.update_data(name=message.text.capitalize())
-    await message.delete()
-    await do_text(state)
-    await state.set_state(RegistrateTeacher.wait)
-
-
-@dp.message(StateFilter(RegistrateTeacher.surname))
-async def text(message: Message, state: FSMContext):
-    await state.update_data(surname=message.text.capitalize())
     await message.delete()
     await do_text(state)
     await state.set_state(RegistrateTeacher.wait)
@@ -167,20 +148,16 @@ async def text(message: Message, state: FSMContext):
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     n = user_data['name']
-    s = user_data['surname']
     g = user_data['grade']
     sp = user_data['sphere']
     d = user_data['description']
     call = user_data['call']
     user = teacher.model.Teacher(
         id=callback_query.from_user.id,
-        type="Teacher",
         name=n,
-        surname=s,
         grade=g,
         sphere=sp,
         description=d,
-        sort=1,
         show=False
     )
     add_user(user)

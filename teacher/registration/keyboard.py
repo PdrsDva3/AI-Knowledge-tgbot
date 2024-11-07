@@ -3,11 +3,13 @@
 """
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+from config import NoneData
+
 
 def sphere_teacher() -> InlineKeyboardMarkup:
     """
     Клавиатура создания типов сфер деятельности учителя
-    :return:
+    :return: keyboard
     """
     kb = [
         [
@@ -39,7 +41,7 @@ def sphere_teacher() -> InlineKeyboardMarkup:
 def grade_teacher() -> InlineKeyboardMarkup:
     """
     Клавиатура создания уровня работы
-    :return:
+    :return: keyboard
     """
     kb = [
         [
@@ -65,52 +67,52 @@ def grade_teacher() -> InlineKeyboardMarkup:
     return keyboard
 
 
-def reg_teacher() -> InlineKeyboardMarkup:
+def reg_teacher(name, grade, sphere, bio) -> InlineKeyboardMarkup:
     """
     Базовая клавиатура выбора пункта для регистрации
-    :return:
+    :return: keyboard
     """
-    kb = [
-        [
-            InlineKeyboardButton(text="Имя", callback_data="name_teacher")
-        ],
-        [
-            InlineKeyboardButton(text="Отчество", callback_data="surname_teacher")
-        ],
-        [
-            InlineKeyboardButton(text="Уровень", callback_data="grade_teacher")
-        ],
-        [
-            InlineKeyboardButton(text="Сфера", callback_data="sphere_teacher")
-        ],
-        [
-            InlineKeyboardButton(text="Краткий рассказ", callback_data="description_teacher"),
-        ]
-    ]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
+
+    buttons = []
+    button_n = [InlineKeyboardButton(text="Имя", callback_data="name_teacher")]
+    button_g = [InlineKeyboardButton(text="Уровень", callback_data="grade_teacher")]
+    button_s = [InlineKeyboardButton(text="Сфера", callback_data="sphere_teacher")]
+    button_b = [InlineKeyboardButton(text="Краткий рассказ", callback_data="description_teacher")]
+    if name != NoneData:
+        button_n = [InlineKeyboardButton(text="Имя ✅", callback_data="name_teacher")]
+    if grade != NoneData:
+        button_g = [InlineKeyboardButton(text="Уровень ✅", callback_data="grade_teacher")]
+    if sphere != NoneData:
+        button_s = [InlineKeyboardButton(text="Сфера ✅", callback_data="sphere_teacher")]
+    if bio != NoneData:
+        button_b = [InlineKeyboardButton(text="Краткий рассказ ✅", callback_data="description_teacher")]
+
+    buttons.append(button_n)
+    buttons.append(button_g)
+    buttons.append(button_s)
+    buttons.append(button_b)
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
 
 
 def reg_teacher_okay() -> InlineKeyboardMarkup:
     """
     Конечная клавиатура выбора пункта для регистрации
-    :return:
+    :return: keyboard
     """
     kb = [
         [
-            InlineKeyboardButton(text="name", callback_data="name_teacher")
+            InlineKeyboardButton(text="Имя ✅", callback_data="name_teacher")
         ],
         [
-            InlineKeyboardButton(text="surname", callback_data="surname_teacher")
+            InlineKeyboardButton(text="Уровень ✅", callback_data="grade_teacher")
         ],
         [
-            InlineKeyboardButton(text="grade", callback_data="grade_teacher")
+            InlineKeyboardButton(text="Сфера ✅", callback_data="sphere_teacher")
         ],
         [
-            InlineKeyboardButton(text="sphere", callback_data="sphere_teacher")
-        ],
-        [
-            InlineKeyboardButton(text="description", callback_data="description_teacher"),
+            InlineKeyboardButton(text="Краткий рассказ ✅", callback_data="description_teacher"),
         ],
         [
             InlineKeyboardButton(text='Все верно', callback_data="reg_teacher_ok"),
@@ -124,7 +126,7 @@ def reg_teacher_okay() -> InlineKeyboardMarkup:
 def reg_return_teacher() -> InlineKeyboardMarkup:
     """
     Клавиатура для возвращения на регистрацию
-    :return:
+    :return: keyboard
     """
     kb = [
         [

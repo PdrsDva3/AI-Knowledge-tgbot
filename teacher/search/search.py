@@ -4,12 +4,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery
 
-from db.db_student import get_all_teachers
 from config import bot, dp
 from student.search import keyboard as kb
 
 
-@dp.callback_query(lambda c: c.data == "cmd_go")
+@dp.callback_query(lambda c: c.data == "new_students_teacher")
 async def cmd_go(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await bot.edit_message_text(
@@ -22,8 +21,8 @@ async def cmd_go(callback: CallbackQuery, state: FSMContext):
     )
 
 
-async def get_random_teachers() -> list[dict]:
-    list_ = await get_all_teachers()
+async def get_random_student() -> list[dict]:
+    list_ = await get_all_student()
     random.shuffle(list_)
     return list_
 

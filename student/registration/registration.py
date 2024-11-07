@@ -7,7 +7,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery, Message
 
 from config import dp, bot
-from db_requests import get_all, update_all, insert_all
+from db.db_student import get_all, update_all, insert_all
 from student.registration import keyboard as kb
 
 
@@ -173,10 +173,10 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     user_id = callback_query.from_user.id
     user_data = await state.get_data()
     if await get_all(user_id):
-        await update_all(user_id, "student", user_data["name"], user_data["grade"], user_data["sphere"],
+        await update_all(user_id, user_data["name"], user_data["grade"], user_data["sphere"],
                          user_data["bio"])
     else:
-        await insert_all(user_id, "student", user_data["name"], user_data["grade"], user_data["sphere"],
+        await insert_all(user_id,  user_data["name"], user_data["grade"], user_data["sphere"],
                          user_data["bio"], callback_query.from_user.username)
 
     await state.clear()

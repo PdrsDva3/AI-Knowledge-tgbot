@@ -23,14 +23,21 @@ def migration_up():
         create = sql.SQL("""
         CREATE TABLE IF NOT EXISTS teacher  (
     id              bigint NOT NULL PRIMARY KEY,
-    type varchar,
     name            varchar,
-    surname        varchar,
     grade varchar,
     sphere varchar, 
     description varchar,
-    sort integer default 1,
     show bool default false);
+    
+    
+        CREATE TABLE IF NOT EXISTS student  (
+    id              bigint NOT NULL PRIMARY KEY,
+    name            varchar,
+    grade varchar,
+    sphere varchar, 
+    description varchar,
+    show bool default false,
+    nickname varchar);
         """)
 
         cur.execute(create)  # Выполняем запрос на создание таблицы
@@ -47,7 +54,7 @@ def migration_down():
     conn = db_connection()
     cur = conn.cursor()
     try:
-        drop = sql.SQL("""DROP TABLE IF EXISTS teacher """)
+        drop = sql.SQL("""DROP TABLE IF EXISTS teacher, student;""")
 
         cur.execute(drop)  # Выполняем запрос на создание таблицы
         conn.commit()
@@ -57,33 +64,6 @@ def migration_down():
         if conn:
             cur.close()
             conn.close()
-
-async def get_all(user_id: int, role: str):
-    connection = db_connection()
-    cursor = connection.cursor()
-
-    try:
-        get_all_query = sql.SQL("""
-            SELECT * FROM %s WHERE id = %s
-            """)
-        cursor.execute(get_all_query, (role, user_id))
-
-        rows = cursor.fetchmany(size=4)
-
-        user_info = [
-            {"name": row[0], "last_name": row[1], "father_name": row[2], "profession": row[3]}
-            for row in rows
-        ]
-
-        return user_info
-
-    except (Exception, psycopg2.DatabaseError) as error:
-        return error
-    finally:
-        if connection:
-            cursor.close()
-            connection.close()
-
 
 
 if __name__ == "__main__":

@@ -25,14 +25,14 @@ async def get_all(user_id: int):
 
     try:
         get_all_query = sql.SQL("""
-            SELECT * FROM users WHERE id = %s
+            SELECT * FROM student WHERE id = %s
             """)
         cursor.execute(get_all_query, (user_id,))
 
         rows = cursor.fetchall()
 
         user_info = [
-            {"id": row[0], "role": row[1], "name": row[2], "grade": row[3], "sphere": row[4], "bio": row[5]}
+            {"id": row[0], "name": row[1], "grade": row[2], "sphere": row[3], "bio": row[4]}
             for row in rows
         ]
 
@@ -46,15 +46,15 @@ async def get_all(user_id: int):
             connection.close()
 
 
-async def insert_all(user_id, role, name, grade, sphere, bio, nickname):
+async def insert_all(user_id, name, grade, sphere, bio, nickname):
     connection = db_connection()
     cursor = connection.cursor()
 
     try:
         get_all_query = sql.SQL("""
-            insert into users (id, role, name, grade, sphere, bio, nickname) VALUES (%s, %s, %s, %s, %s, %s, %s)
+            insert into student (id, name, grade, sphere, description, nickname) VALUES (%s, %s, %s, %s, %s, %s)
             """)
-        cursor.execute(get_all_query, (user_id, role, name, grade, sphere, bio, nickname))
+        cursor.execute(get_all_query, (user_id, name, grade, sphere, bio, nickname))
 
         connection.commit()
 
@@ -66,21 +66,20 @@ async def insert_all(user_id, role, name, grade, sphere, bio, nickname):
             connection.close()
 
 
-async def update_all(user_id, role, name, grade, sphere, bio):
+async def update_all(user_id, name, grade, sphere, bio):
     connection = db_connection()
     cursor = connection.cursor()
 
     try:
         get_all_query = sql.SQL("""
-            UPDATE users
-            SET role = %s,
-                name = %s,
+            UPDATE student
+            SET name = %s,
                 grade = %s,
                 sphere = %s,
-                bio = %s
+                description = %s
             WHERE id = %s
             """)
-        cursor.execute(get_all_query, (role, name, grade, sphere, bio, user_id))
+        cursor.execute(get_all_query, (name, grade, sphere, bio, user_id))
 
         connection.commit()
 
@@ -95,13 +94,11 @@ async def update_all(user_id, role, name, grade, sphere, bio):
 async def get_all_teachers():
     connection = db_connection()
     cursor = connection.cursor()
-
-    # todo @sve4ka изменить поля для корректного обращения
     try:
         get_all_teachers_query = sql.SQL("""
-            SELECT name, grade, sphere, bio FROM users WHERE role = %s and flag = true
+            SELECT name, grade, sphere, description FROM teacher WHERE show = true
             """)
-        cursor.execute(get_all_teachers_query, ("teacher",))
+        cursor.execute(get_all_teachers_query)
 
         rows = cursor.fetchall()
 
@@ -128,13 +125,13 @@ async def get_filter_teachers(grade, sphere):
     connection = db_connection()
     cursor = connection.cursor()
 
-    # todo @sve4ka изменить поля для корректного обращения
     try:
         fteachers_query = sql.SQL("""
-        SELECT name, grade, sphere, bio FROM users WHERE role = 'teacher' and 
+        SELECT name, grade, sphere, description FROM teacher 
+        WHERE 
         grade in %s and 
         sphere in %s and 
-        flag = true
+        show = true
         """)
 
         if not grade and sphere:
