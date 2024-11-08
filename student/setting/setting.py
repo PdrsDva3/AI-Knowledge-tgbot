@@ -1,4 +1,4 @@
-"""Реализация настроек"""
+"""Реализация настроек видимости"""
 
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext

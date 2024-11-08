@@ -1,3 +1,6 @@
+"""
+Точка входа в программу
+"""
 import asyncio
 import logging
 
@@ -12,6 +15,7 @@ import student.registration.registration
 import student.search.search
 import student.search.filters
 import student.setting.setting
+import student.myteacher.myteacher
 
 import teacher.registration.registration
 import teacher.search.search
@@ -30,7 +34,7 @@ async def main():
 
 if __name__ == "__main__":
     # db.migration.migration_down()
-    db.migration.migration_up()
+    # db.migration.migration_up()
     asyncio.run(main())
 
 

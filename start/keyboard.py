@@ -1,3 +1,6 @@
+"""
+Клавиатуры для начального блока
+"""
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 #

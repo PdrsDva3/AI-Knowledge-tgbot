@@ -1,3 +1,6 @@
+"""
+Клавиатуры для поиска 'студентом' учителя
+"""
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 

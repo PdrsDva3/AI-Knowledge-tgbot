@@ -1,9 +1,10 @@
+"""
+Реализация рандомного поиска с фильтрами
+"""
 import random
-
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
-
 from db.db_student import get_filter_teachers, insert_into_ts
 from db.db_teacher import check_id, get_all_student
 from student.search import keyboard as kb

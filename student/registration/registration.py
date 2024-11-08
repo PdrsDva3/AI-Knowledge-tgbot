@@ -34,15 +34,15 @@ DATA = """
 NoneData = ""
 
 
-async def print_text(state: FSMContext):
-    user_data = await state.get_data()
+async def display_student(state: FSMContext):
+    student_data = await state.get_data()
 
-    n = user_data['name']
-    g = user_data['grade']
-    s = user_data['sphere']
-    b = user_data['bio']
+    n = student_data['name']
+    g = student_data['grade']
+    s = student_data['sphere']
+    b = student_data['bio']
 
-    call = user_data['call']
+    call = student_data['call']
     if n != NoneData and g != NoneData and s != NoneData and b != NoneData:
         await call.message.edit_text(text="Проверьте введенные данные и если все "
                                           "верно нажмите на соответсвующую кнопку \n\n" +
@@ -51,72 +51,66 @@ async def print_text(state: FSMContext):
     else:
         await call.message.edit_text(DATA.format(n, g, s, b),
                                      reply_markup=kb.dynamic_choosing_kb(n, g, s, b))  # kb.registration_kb() - была,
-                                                                                # но она без галочек, Денчику не кайф
+        # но она без галочек, Денчику не кайф((
 
 
-# пример user_info [{'id': 574957210, 'role': 'student', 'name': 'Денис', 'grade': 'No work', 'sphere': 'Any', 'bio': 'Я хотдог'}]
 @dp.callback_query(lambda c: c.data == "registration")
-async def cmd_registration(callback: CallbackQuery, state: FSMContext):
-    user_info = await get_all(callback.from_user.id)
-    if user_info:
-        user_info = user_info[0]
-        await state.update_data(name=user_info["name"], grade=user_info["grade"], sphere=user_info["sphere"],
-                                bio=user_info["bio"], call=callback)
+async def cmd_reg(callback: CallbackQuery, state: FSMContext):
+    student_data = await get_all(callback.from_user.id)
+    if student_data:
+        student_data = student_data[0]
+        await state.update_data(name=student_data["name"], grade=student_data["grade"], sphere=student_data["sphere"],
+                                bio=student_data["bio"], call=callback)
     else:
         await state.update_data(name=NoneData, grade=NoneData, sphere=NoneData, bio=NoneData, call=callback)
 
-    await print_text(state)
+    await display_student(state)
 
 
 @dp.callback_query(lambda c: c.data == "return")
-async def start_registration(callback: CallbackQuery, state: FSMContext):
+async def return_to_cmd_reg(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Registration.wait)
-    await print_text(state)
+    await display_student(state)
 
 
 @dp.callback_query(lambda c: c.data == "name")
-async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Введите ваше имя", reply_markup=kb.return_kb())
+async def fill_name(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("Введите ваше имя", reply_markup=kb.return_kb())
     await state.set_state(Registration.name)
-    await state.update_data(call=callback_query)
+    await state.update_data(call=callback)
 
 
-# !!!!!!!! grade choice
 @dp.callback_query(lambda c: c.data == "grade")
-async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Выберите уровень подготовки", reply_markup=kb.choose_grade_kb())
+async def choose_grade(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("Выберите уровень подготовки", reply_markup=kb.choose_grade_kb())
     await state.set_state(Registration.grade)
 
 
 @dp.callback_query(lambda c: c.data.split("_")[-1] == "grade")
-async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await state.update_data(grade=" ".join(callback_query.data.split("_")[:-1]).capitalize())
-    await print_text(state)
+async def choose_grade(callback: CallbackQuery, state: FSMContext):
+    await state.update_data(grade=" ".join(callback.data.split("_")[:-1]).capitalize())
+    await display_student(state)
     await state.set_state(Registration.wait)
 
 
-# !!!!!!!!
-
-
-# ///////////// sphere choice
 @dp.callback_query(lambda c: c.data == "sphere")
-async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    user_data = await state.get_data()
-    s = user_data['sphere']
+async def choose_sphere(callback: CallbackQuery, state: FSMContext):
+    student_data = await state.get_data()
+    s = student_data['sphere']
     if s == NoneData:
-        await callback_query.message.edit_text("Выберите ваши сферы деятельности", reply_markup=kb.choose_sphere_kb())
+        await callback.message.edit_text("Выберите ваши сферы деятельности", reply_markup=kb.choose_sphere_kb())
     else:
-        await callback_query.message.edit_text("Выбрано " + s + "\nВыберите дополнительно или "
-                                                                "нажмите повторно чтобы убрать",
-                                               reply_markup=kb.choose_sphere_kb())
+        await callback.message.edit_text("Выбрано " + s + "\nВыберите дополнительно или "
+                                                          "нажмите повторно чтобы убрать",
+                                         reply_markup=kb.choose_sphere_kb())
     await state.set_state(Registration.sphere)
 
 
 @dp.callback_query(lambda c: c.data.split("_")[-1] == "sphere")
-async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    user_data = await state.get_data()
-    s = user_data['sphere']
-    tt = " ".join(callback_query.data.split("_")[:-1])
+async def choose_sphere(callback: CallbackQuery, state: FSMContext):
+    student_data = await state.get_data()
+    s = student_data['sphere']
+    tt = " ".join(callback.data.split("_")[:-1])
     if s == NoneData:
         await state.update_data(sphere=tt)
     elif tt in s:
@@ -125,34 +119,32 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     else:
         tt = s + ", " + tt
         await state.update_data(sphere=tt)
-    await callback_query.message.edit_text(text="Выбрано " + tt + "\nВыберите дополнительно или\n "
-                                                                  "нажмите повторно чтобы убрать",
-                                           reply_markup=kb.choose_sphere_kb())
+    await callback.message.edit_text(text="Выбрано " + tt + "\nВыберите дополнительно или\n "
+                                                            "нажмите повторно чтобы убрать",
+                                     reply_markup=kb.choose_sphere_kb())
     await state.set_state(Registration.wait)
 
 
-# /////////////
-
 @dp.callback_query(lambda c: c.data == "bio")
-async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Введите краткий рассказ", reply_markup=kb.return_kb())
+async def fill_bio(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("Введите краткий рассказ", reply_markup=kb.return_kb())
     await state.set_state(Registration.bio)
-    await state.update_data(call=callback_query)
+    await state.update_data(call=callback)
 
 
 @dp.message(StateFilter(Registration.name))
-async def text(message: Message, state: FSMContext):
+async def end_fill_name(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
     await message.delete()
-    await print_text(state)
+    await display_student(state)
     await state.set_state(Registration.wait)
 
 
 @dp.message(StateFilter(Registration.bio))
-async def text(message: Message, state: FSMContext):
+async def end_fill_bio(message: Message, state: FSMContext):
     await state.update_data(bio=message.text)
     await message.delete()
-    await print_text(state)
+    await display_student(state)
     await state.set_state(Registration.wait)
 
 
@@ -171,20 +163,20 @@ ALL_OKAY_TEXT = """
 
 
 @dp.callback_query(lambda c: c.data == "all_is_okay")
-async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    user_id = callback_query.from_user.id
-    user_data = await state.get_data()
-    if await get_all(user_id):
-        await update_all(user_id, user_data["name"], user_data["grade"], user_data["sphere"],
-                         user_data["bio"])
+async def end_reg(callback: CallbackQuery, state: FSMContext):
+    student_id = callback.from_user.id
+    student_data = await state.get_data()
+    if await get_all(student_id):
+        await update_all(student_id, student_data["name"], student_data["grade"], student_data["sphere"],
+                         student_data["bio"])
     else:
-        await insert_all(user_id,  user_data["name"], user_data["grade"], user_data["sphere"],
-                         user_data["bio"], callback_query.from_user.username)
+        await insert_all(student_id, student_data["name"], student_data["grade"], student_data["sphere"],
+                         student_data["bio"], callback.from_user.username)
 
     await state.clear()
     await bot.edit_message_text(
-        chat_id=callback_query.message.chat.id,
-        message_id=callback_query.message.message_id,
+        chat_id=callback.message.chat.id,
+        message_id=callback.message.message_id,
         text=ALL_OKAY_TEXT,
         reply_markup=kb.info_and_continue_kb()
     )

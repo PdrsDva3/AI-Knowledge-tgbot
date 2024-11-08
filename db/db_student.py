@@ -19,8 +19,9 @@ def db_connection():
     return psycopg2.connect(**db_config)
 
 
-async def get_all(user_id: int):
+async def get_all(user_id: int) -> list[dict]:
     """
+    Взять всю информацию студента
     :param user_id:
     :return:
     """
@@ -51,8 +52,9 @@ async def get_all(user_id: int):
             connection.close()
 
 
-async def insert_all(user_id, name, grade, sphere, bio, nickname):
+async def insert_all(user_id: int, name: str, grade: str, sphere: str, bio: str, nickname: str) -> None:
     """
+    Добавить в БД характеристику юзера
     :param user_id:
     :param name:
     :param grade:
@@ -65,10 +67,10 @@ async def insert_all(user_id, name, grade, sphere, bio, nickname):
     cursor = connection.cursor()
 
     try:
-        get_all_query = sql.SQL("""
+        insert_all_query = sql.SQL("""
             insert into student (id, name, grade, sphere, description, nickname) VALUES (%s, %s, %s, %s, %s, %s)
             """)
-        cursor.execute(get_all_query, (user_id, name, grade, sphere, bio, nickname))
+        cursor.execute(insert_all_query, (user_id, name, grade, sphere, bio, nickname))
 
         connection.commit()
 
@@ -80,8 +82,9 @@ async def insert_all(user_id, name, grade, sphere, bio, nickname):
             connection.close()
 
 
-async def update_all(user_id, name, grade, sphere, bio):
+async def update_all(user_id:int, name: str, grade: str, sphere: str, bio: str) -> None:
     """
+    Обновить характеристику юзера
     :param user_id:
     :param name:
     :param grade:
@@ -93,7 +96,7 @@ async def update_all(user_id, name, grade, sphere, bio):
     cursor = connection.cursor()
 
     try:
-        get_all_query = sql.SQL("""
+        update_all_query = sql.SQL("""
             UPDATE student
             SET name = %s,
                 grade = %s,
@@ -101,7 +104,7 @@ async def update_all(user_id, name, grade, sphere, bio):
                 description = %s
             WHERE id = %s
             """)
-        cursor.execute(get_all_query, (name, grade, sphere, bio, user_id))
+        cursor.execute(update_all_query, (name, grade, sphere, bio, user_id))
 
         connection.commit()
 
@@ -113,7 +116,12 @@ async def update_all(user_id, name, grade, sphere, bio):
             connection.close()
 
 
-async def get_all_teachers(id_student: int):
+async def get_all_teachers(id_student: int) -> list[dict]:
+    """
+    Взять всех учителей, у которых show = true
+    :param id_student:
+    :return:
+    """
     connection = db_connection()
     cursor = connection.cursor()
     try:
@@ -152,8 +160,9 @@ all_grades = ["No_work", "Intern", "Junior", "Middle", "Senior"]
 all_spheres = ["NLP", "CV", "RecSys", "Audio", "Classic_ML", "Any"]
 
 
-async def get_filter_teachers(grade, sphere, id_student):
+async def get_filter_teachers(grade: str, sphere: str, id_student:int) -> list[dict]:
     """
+    Взять всех учителей, у которых show = true и походящими под фильтры
     :param grade:
     :param sphere:
     :param id_student:
@@ -163,7 +172,7 @@ async def get_filter_teachers(grade, sphere, id_student):
     cursor = connection.cursor()
 
     try:
-        fteachers_query = sql.SQL("""
+        get_all_fteachers_query = sql.SQL("""
         SELECT name, grade, sphere, description, id FROM teacher 
         WHERE 
         grade similar to %s and
@@ -179,19 +188,19 @@ async def get_filter_teachers(grade, sphere, id_student):
         )""")
 
         if not grade and sphere:
-            cursor.execute(fteachers_query,
+            cursor.execute(get_all_fteachers_query,
                            ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%", id_student,
                             id_student))
         elif not sphere and grade:
-            cursor.execute(fteachers_query,
+            cursor.execute(get_all_fteachers_query,
                            ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(all_spheres) + ")%", id_student,
                             id_student))
         elif not grade and not sphere:
-            cursor.execute(fteachers_query,
+            cursor.execute(get_all_fteachers_query,
                            ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(all_spheres) + ")%", id_student,
                             id_student))
         else:
-            cursor.execute(fteachers_query,
+            cursor.execute(get_all_fteachers_query,
                            ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%",
                             id_student, id_student))
         rows = cursor.fetchall()
@@ -211,18 +220,19 @@ async def get_filter_teachers(grade, sphere, id_student):
             connection.close()
 
 
-async def get_teacher_by_id(user_id):
+async def get_teacher_by_id(user_id: int) -> list[dict]:
     """
+    Взять характеристику учителя
     :param user_id:
     :return:
     """
     connection = db_connection()
     cursor = connection.cursor()
     try:
-        get_all_teachers_query = sql.SQL("""
+        get_teacher_by_id_query = sql.SQL("""
             SELECT name, grade, sphere, description, nickname FROM teacher WHERE id = %s
             """)
-        cursor.execute(get_all_teachers_query, (user_id,))
+        cursor.execute(get_teacher_by_id_query, (user_id,))
 
         rows = cursor.fetchall()
 
@@ -241,8 +251,9 @@ async def get_teacher_by_id(user_id):
             connection.close()
 
 
-async def insert_into_ts(id_teacher, id_student, nick_teacher, nick_student):
+async def insert_into_ts(id_teacher: int, id_student: str, nick_teacher: str, nick_student: str) -> None:
     """
+    Добавить в таблицу отношения учитель-ученик данные
     :param id_teacher:
     :param id_student:
     :param nick_teacher:
@@ -252,11 +263,11 @@ async def insert_into_ts(id_teacher, id_student, nick_teacher, nick_student):
     cursor = connection.cursor()
 
     try:
-        get_all_teachers_query = sql.SQL("""
+        insert_into_ts_query = sql.SQL("""
             INSERT INTO teacher_student (id_teacher, id_student, nick_teacher, nick_student)
             values (%s, %s, %s, %s)
             """)
-        cursor.execute(get_all_teachers_query, (id_teacher, id_student, nick_teacher, nick_student))
+        cursor.execute(insert_into_ts_query, (id_teacher, id_student, nick_teacher, nick_student))
 
         connection.commit()
 
@@ -268,15 +279,16 @@ async def insert_into_ts(id_teacher, id_student, nick_teacher, nick_student):
             connection.close()
 
 
-async def get_teacher_list(id_student: int):
+async def get_teacher_list(id_student: int) -> list[dict]:
     """
+    Взять список учителей указанного студента
     :param id_student:
     :return:
     """
     connection = db_connection()
     cursor = connection.cursor()
     try:
-        get_all_student_query = sql.SQL("""SELECT name, grade, sphere, description, nickname
+        get_teacher_list_query = sql.SQL("""SELECT name, grade, sphere, description, nickname
 FROM teacher 
 WHERE EXISTS (
     SELECT 1 
@@ -285,7 +297,7 @@ WHERE EXISTS (
     and teacher_student.id_student = %s
     AND teacher_student.id_student != teacher_student.id_teacher
 )""")
-        cursor.execute(get_all_student_query, (id_student,))
+        cursor.execute(get_teacher_list_query, (id_student,))
 
         rows = cursor.fetchall()
         user_info = [
@@ -303,16 +315,22 @@ WHERE EXISTS (
             connection.close()
 
 
-async def change_show_student(user_id: int, show: bool):
+async def change_show_student(user_id: int, show: bool) -> None:
+    """
+    Изменить видимость учителя (show)
+    :param user_id:
+    :param show:
+    :return:
+    """
     connection = db_connection()
     cursor = connection.cursor()
     try:
-        update_query = sql.SQL("""
+        update_show_query = sql.SQL("""
                 UPDATE student 
                 SET show = %s
                 WHERE id = %s
             """)
-        cursor.execute(update_query, (
+        cursor.execute(update_show_query, (
             show, user_id
         ))
         cursor.connection.commit()

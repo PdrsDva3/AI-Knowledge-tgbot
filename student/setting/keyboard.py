@@ -1,5 +1,5 @@
 """
-Этот файл отвечает за создание всех встроенных клавиатур
+Создание клавиатур для блока настроек видимости
 """
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
