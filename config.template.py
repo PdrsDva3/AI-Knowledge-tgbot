@@ -8,7 +8,7 @@ DB_USER="postgres"
 DB_HOST="localhost"
 
 
-
+NoneData = ""
 # Инициализация бота
 bot = Bot(token=TOKEN_TG)
 dp = Dispatcher()

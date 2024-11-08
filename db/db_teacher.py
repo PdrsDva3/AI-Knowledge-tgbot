@@ -132,36 +132,7 @@ def change_show(user_id: int, show: bool):
             cursor.close()
             connection.close()
 
-#
-# async def get_all(user_id: int, role: str):
-#     connection = db_connection()
-#     cursor = connection.cursor()
-#
-#     try:
-#         get_all_query = sql.SQL("""
-#             SELECT * FROM %s WHERE id = %s
-#             """)
-#         cursor.execute(get_all_query, (role, user_id))
-#
-#         rows = cursor.fetchmany(size=4)
-#
-#         user_info = [
-#             {"name": row[0], "last_name": row[1], "father_name": row[2], "profession": row[3]}
-#             for row in rows
-#         ]
-#
-#         return user_info
-#
-#     except (Exception, psycopg2.DatabaseError) as error:
-#         return error
-#     finally:
-#         if connection:
-#             cursor.close()
-#             connection.close()
 
-
-
-# todo мне кажется надо выводить не все, а имя и никнейм
 async def get_all_data_all_student(id_teacher: int):
     connection = db_connection()
     cursor = connection.cursor()
@@ -191,7 +162,7 @@ WHERE show = true AND EXISTS (
             cursor.close()
             connection.close()
 
-# todo мне кажется надо выводить не все, а имя и никнейм
+
 async def get_all_student(id_teacher: int):
     connection = db_connection()
     cursor = connection.cursor()

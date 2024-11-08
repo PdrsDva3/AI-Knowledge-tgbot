@@ -1,3 +1,6 @@
+"""Модель учителя"""
+
+
 class Teacher:
     id: int
     name: str
@@ -8,6 +11,15 @@ class Teacher:
     nickname: str
 
     def __init__(self, id, name, grade, sphere, description, show, nickname):
+        """
+        :param id:  id telegram
+        :param name: имя учителя
+        :param grade: уровень знаний
+        :param sphere: сфера деятельности
+        :param description: описание
+        :param show: показывать ли его в поиске
+        :param nickname: ник в телеграмме, @nick
+        """
         self.id = id
         self.name = name
         self.grade = grade
