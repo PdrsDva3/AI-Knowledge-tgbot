@@ -33,9 +33,6 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
             [
                 InlineKeyboardButton(text="my students", callback_data="my_students_teacher"),
             ],
-            [
-                InlineKeyboardButton(text="help", callback_data="help"),
-            ],
             [InlineKeyboardButton(text="return", callback_data="return_to_start")]
         ]
 

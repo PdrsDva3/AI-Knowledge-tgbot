@@ -94,7 +94,7 @@ async def searching_next(callback: CallbackQuery, state: FSMContext):
 
 
 STUDENT_DATA = """
-Новая заявка
+Новая заявка от учителя
 
 Имя:    {}
 Уровень:    {}
@@ -122,14 +122,13 @@ async def agree_request(callback: CallbackQuery, state: FSMContext):
                                                         teacher.sphere, teacher.description), reply_markup=keyboard)
     await callback.answer(text="Заявка отправлена")
     index = data.get("index", 0) + 1
-    await callback.answer(text="Заявка отправлена")
 
     await state.update_data(index=index)
     await print_search(callback, state)
 
 
 RESPONSE_TEACHER_DATA_ACCEPT = """
-Ваша заявка для
+Ваша заявка для ученика
 
 Имя:       {}
 Уровень:   {}
@@ -142,7 +141,7 @@ RESPONSE_TEACHER_DATA_ACCEPT = """
 """
 
 RESPONSE_TEACHER_DATA_DENY = """
-Ваша заявка для
+Ваша заявка для ученика
 
 Имя:       {}
 Уровень:   {}
@@ -171,6 +170,8 @@ async def deny_request(callback: CallbackQuery):
                                                                student_info["sphere"], student_info["bio"],
                                                                student_info["nickname"]),
                            reply_markup=keyboard)
+
+    await callback.answer(text="Вы приняли заявку")
     await callback.message.delete()
 
 @dp.callback_query(lambda c: c.data.split("_")[-2:] == ["deny", "teacher"])
@@ -185,6 +186,8 @@ async def deny_request(callback: CallbackQuery):
                            RESPONSE_TEACHER_DATA_DENY.format(teacher_info["name"], teacher_info["grade"],
                                                              teacher_info["sphere"], teacher_info["bio"]),
                            reply_markup=keyboard)
+
+    await callback.answer(text="Вы отклонили заявку")
     await callback.message.delete()
 
 @dp.callback_query(lambda c: c.data == "ok")

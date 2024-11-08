@@ -16,7 +16,7 @@ async def searching_next(callback: CallbackQuery):
         TEACHER_LIST += (f"Имя:       {student["name"]}\n"
                          f"Уровень:   {student['grade']}\n"
                          f"Сфера:     {student['sphere']}\n"
-                         f"Краткий рассказ: \n{student['description']}\n"
+                         f"Краткий рассказ: \n{student["bio"]}\n"
                          f"Для связи:  @{student['nickname']}\n\n")
 
     if TEACHER_LIST == "ваши студенты:":

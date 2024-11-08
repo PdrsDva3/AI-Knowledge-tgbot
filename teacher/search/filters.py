@@ -171,7 +171,7 @@ async def searching_next(callback: CallbackQuery, state: FSMContext):
 
 
 STUDENT_DATA = """
-Новая заявка
+Новая заявка от учителя
 
 Имя:    {}
 Уровень:    {}
@@ -204,8 +204,8 @@ async def agree_request(callback: CallbackQuery, state: FSMContext):
     await state.update_data(index=index)
     await print_teacherf(callback, state)
 
-    RESPONSE_TEACHER_DATA_ACCEPT = """
-Ваша заявка для
+RESPONSE_TEACHER_DATA_ACCEPT = """
+Ваша заявка для ученика
 
 Имя:       {}
 Уровень:   {}
@@ -217,8 +217,8 @@ async def agree_request(callback: CallbackQuery, state: FSMContext):
 Никнейм для связи: @{}
 """
 
-    RESPONSE_TEACHER_DATA_DENY = """
-Ваша заявка для
+RESPONSE_TEACHER_DATA_DENY = """
+Ваша заявка для ученика
 
 Имя:       {}
 Уровень:   {}
@@ -229,43 +229,47 @@ async def agree_request(callback: CallbackQuery, state: FSMContext):
 была ОТКЛОНЕНА
 """
 
-    @dp.callback_query(lambda c: c.data.split("_")[-2:] == ["acceptf", "teacher"])
-    async def deny_request(callback: CallbackQuery):
-        buttons = [
-            [InlineKeyboardButton(text="Ок", callback_data="ok")],
-        ]
-        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+@dp.callback_query(lambda c: c.data.split("_")[-2:] == ["acceptf", "teacher"])
+async def deny_request(callback: CallbackQuery):
+    buttons = [
+        [InlineKeyboardButton(text="Ок", callback_data="ok")],
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
-        teacher_id = callback.from_user.id
-        student_id = int(callback.data.split("_")[0])
-        teacher, i = check_id(student_id)
-        student_info = (await db.db_student.get_all(teacher_id))[0]
-        print(student_info)
-        await insert_into_ts(student_id, teacher_id, teacher.nickname, callback.from_user.username)
+    teacher_id = callback.from_user.id
+    student_id = int(callback.data.split("_")[0])
+    teacher, i = check_id(student_id)
+    student_info = (await db.db_student.get_all(teacher_id))[0]
+    print(student_info)
+    await insert_into_ts(student_id, teacher_id, teacher.nickname, callback.from_user.username)
 
-        await bot.send_message(student_id,
-                               RESPONSE_TEACHER_DATA_ACCEPT.format(student_info["name"], student_info["grade"],
-                                                                   student_info["sphere"], student_info["bio"],
-                                                                   student_info["nickname"]),
-                               reply_markup=keyboard)
-        await callback.message.delete()
+    await bot.send_message(student_id,
+                           RESPONSE_TEACHER_DATA_ACCEPT.format(student_info["name"], student_info["grade"],
+                                                               student_info["sphere"], student_info["bio"],
+                                                               student_info["nickname"]),
+                           reply_markup=keyboard)
 
-    @dp.callback_query(lambda c: c.data.split("_")[-2:] == ["denyf", "teacher"])
-    async def deny_request(callback: CallbackQuery):
-        buttons = [
-            [InlineKeyboardButton(text="Ок", callback_data="ok")],
-        ]
-        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    await callback.answer(text="Вы приняли заявку")
+    await callback.message.delete()
 
-        student_id = callback.from_user.id
-        teacher_info = (await db.db_student.get_all(student_id))[0]
-        await bot.send_message(int(callback.data.split("_")[0]),
-                               RESPONSE_TEACHER_DATA_DENY.format(teacher_info["name"], teacher_info["grade"],
-                                                                 teacher_info["sphere"], teacher_info["bio"]),
-                               reply_markup=keyboard)
-        await callback.message.delete()
+@dp.callback_query(lambda c: c.data.split("_")[-2:] == ["denyf", "teacher"])
+async def deny_request(callback: CallbackQuery):
+    buttons = [
+        [InlineKeyboardButton(text="Ок", callback_data="ok")],
+    ]
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
-    @dp.callback_query(lambda c: c.data == "ok")
-    async def deny_request(callback: CallbackQuery):
-        await callback.message.delete()
+    student_id = callback.from_user.id
+    teacher_info = (await db.db_student.get_all(student_id))[0]
+    await bot.send_message(int(callback.data.split("_")[0]),
+                           RESPONSE_TEACHER_DATA_DENY.format(teacher_info["name"], teacher_info["grade"],
+                                                             teacher_info["sphere"], teacher_info["bio"]),
+                           reply_markup=keyboard)
+
+    await callback.answer(text="Вы отклонили заявку")
+    await callback.message.delete()
+
+@dp.callback_query(lambda c: c.data == "ok")
+async def deny_request(callback: CallbackQuery):
+    await callback.message.delete()
 
