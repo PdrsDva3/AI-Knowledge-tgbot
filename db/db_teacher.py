@@ -62,7 +62,6 @@ def add_user(usr: teacher.model.Teacher):
     try:
         user, i = check_id(usr.id)
 
-
         if i == 1:  # Пользователь уже существует
             # Обновляем данные пользователя
             update_query = sql.SQL("""
@@ -121,8 +120,8 @@ def change_show(user_id: int, show: bool):
                 WHERE id = %s
             """)
         cursor.execute(update_query, (
-                show, user_id
-            ))
+            show, user_id
+        ))
         cursor.connection.commit()
         return True
     except (Exception, psycopg2.DatabaseError) as error:
@@ -133,21 +132,53 @@ def change_show(user_id: int, show: bool):
             cursor.close()
             connection.close()
 
+#
+# async def get_all(user_id: int, role: str):
+#     connection = db_connection()
+#     cursor = connection.cursor()
+#
+#     try:
+#         get_all_query = sql.SQL("""
+#             SELECT * FROM %s WHERE id = %s
+#             """)
+#         cursor.execute(get_all_query, (role, user_id))
+#
+#         rows = cursor.fetchmany(size=4)
+#
+#         user_info = [
+#             {"name": row[0], "last_name": row[1], "father_name": row[2], "profession": row[3]}
+#             for row in rows
+#         ]
+#
+#         return user_info
+#
+#     except (Exception, psycopg2.DatabaseError) as error:
+#         return error
+#     finally:
+#         if connection:
+#             cursor.close()
+#             connection.close()
 
-async def get_all(user_id: int, role: str):
+
+
+# todo мне кажется надо выводить не все, а имя и никнейм
+async def get_all_data_all_student(id_teacher: int):
     connection = db_connection()
     cursor = connection.cursor()
-
     try:
-        get_all_query = sql.SQL("""
-            SELECT * FROM %s WHERE id = %s
-            """)
-        cursor.execute(get_all_query, (role, user_id))
+        get_all_student_query = sql.SQL("""SELECT id,  name, grade, sphere, description, nickname
+FROM student 
+WHERE show = true AND EXISTS (
+    SELECT 1 
+    FROM teacher_student 
+    WHERE student.id = teacher_student.id_student
+    and teacher_student.id_teacher = %s
+)""")
+        cursor.execute(get_all_student_query, (id_teacher,))
 
-        rows = cursor.fetchmany(size=4)
-
+        rows = cursor.fetchall()
         user_info = [
-            {"name": row[0], "last_name": row[1], "father_name": row[2], "profession": row[3]}
+            {"id": row[0], "name": row[1], "grade": row[2], "sphere": row[3], "bio": row[4], "nickname": row[5]}
             for row in rows
         ]
 
@@ -160,16 +191,14 @@ async def get_all(user_id: int, role: str):
             cursor.close()
             connection.close()
 
-
-
-#todo мне кажется надо выводить не все, а имя и никнейм
+# todo мне кажется надо выводить не все, а имя и никнейм
 async def get_all_student(id_teacher: int):
     connection = db_connection()
     cursor = connection.cursor()
     try:
-        get_all_student_query = sql.SQL("""SELECT name, grade, sphere, description 
+        get_all_student_query = sql.SQL("""SELECT id,  name, grade, sphere, description, nickname
 FROM student 
-WHERE show = true AND EXISTS (
+WHERE show = true AND NOT EXISTS (
     SELECT 1 
     FROM teacher_student 
     WHERE student.id = teacher_student.id_student
@@ -179,7 +208,7 @@ WHERE show = true AND EXISTS (
 
         rows = cursor.fetchall()
         user_info = [
-            {"name": row[0], "grade": row[1], "sphere": row[2], "bio": row[3]}
+            {"id": row[0], "name": row[1], "grade": row[2], "sphere": row[3], "bio": row[4], "nickname": row[5]}
             for row in rows
         ]
 

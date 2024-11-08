@@ -152,6 +152,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     sp = user_data['sphere']
     d = user_data['description']
     call = user_data['call']
+    await state.clear()
     user = teacher.model.Teacher(
         id=callback_query.from_user.id,
         name=n,
@@ -164,9 +165,31 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     add_user(user)
     kb = [
         [
-            InlineKeyboardButton(text="Продолжить", callback_data="start"),
-        ]]
+            InlineKeyboardButton(text="изменить данные", callback_data="teacher"),
+        ],
+        [
+            InlineKeyboardButton(text="setting", callback_data="setting_teacher"),
+        ],
+        [
+            InlineKeyboardButton(text="new students", callback_data="new_students_teacher"),
+        ],
+        [
+            InlineKeyboardButton(text="my students", callback_data="my_students_teacher"),
+        ],
+        [
+            InlineKeyboardButton(text="help", callback_data="help"),
+        ],
+        [InlineKeyboardButton(text="return", callback_data="return_to_start")]
+    ]
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
-    await call.message.edit_text(text="Данные успешно сохранены", reply_markup=keyboard)
-    await state.clear()
+    DATA = """
+Здраствуйте,
+Имя        {}
+Уровень       {}
+Сфера      {}
+Описание {}
+"""
+    await callback_query.message.edit_text(
+        DATA.format(user.name, user.grade, user.sphere, user.description),
+        reply_markup=keyboard)

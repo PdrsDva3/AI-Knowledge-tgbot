@@ -3,7 +3,7 @@ import random
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
-from debian.debfile import DATA_PART
+# from debian.debfile import DATA_PART
 
 from db.db_student import get_all_teachers, get_teacher_by_id, insert_into_ts
 from config import bot, dp
