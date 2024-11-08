@@ -201,7 +201,7 @@ async def get_one_student(id_student: int):
     try:
         get_all_student_query = sql.SQL("""SELECT id,  name, grade, sphere, description, nickname
 FROM student 
-WHERE id = %s)""")
+WHERE id = %s""")
         cursor.execute(get_all_student_query, (id_student,))
         rows = cursor.fetchall()
         user_info = [
