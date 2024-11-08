@@ -36,7 +36,8 @@ async def get_all(user_id: int):
         rows = cursor.fetchall()
 
         user_info = [
-            {"id": row[0], "name": row[1], "grade": row[2], "sphere": row[3], "bio": row[4], "show": row[5], "nickname": row[6]}
+            {"id": row[0], "name": row[1], "grade": row[2], "sphere": row[3], "bio": row[4], "show": row[5],
+             "nickname": row[6]}
             for row in rows
         ]
 
@@ -179,13 +180,16 @@ async def get_filter_teachers(grade, sphere, id_student):
 
         if not grade and sphere:
             cursor.execute(fteachers_query,
-                           ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%", id_student, id_student))
+                           ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%", id_student,
+                            id_student))
         elif not sphere and grade:
             cursor.execute(fteachers_query,
-                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(all_spheres) + ")%", id_student, id_student))
+                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(all_spheres) + ")%", id_student,
+                            id_student))
         elif not grade and not sphere:
             cursor.execute(fteachers_query,
-                           ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(all_spheres) + ")%", id_student, id_student))
+                           ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(all_spheres) + ")%", id_student,
+                            id_student))
         else:
             cursor.execute(fteachers_query,
                            ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%",
@@ -272,7 +276,7 @@ async def get_teacher_list(id_student: int):
     connection = db_connection()
     cursor = connection.cursor()
     try:
-        get_all_student_query = sql.SQL("""SELECT name, nickname
+        get_all_student_query = sql.SQL("""SELECT name, grade, sphere, description, nickname
 FROM teacher 
 WHERE EXISTS (
     SELECT 1 
@@ -285,7 +289,7 @@ WHERE EXISTS (
 
         rows = cursor.fetchall()
         user_info = [
-            {"name": row[0], "nickname": "@" + row[1]}
+            {"name": row[0], "grade": row[1], "sphere": row[2], "description": row[3], "nickname": "@" + row[4]}
             for row in rows
         ]
 
