@@ -11,5 +11,5 @@ async def searching_next(callback: CallbackQuery):
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     students = await get_all_data_all_student(callback.from_user.id)
-    text = "ваши студенты:\n"+"\n".join([student["name"] for student in students])
+    text = "ваши студенты:\n"+"\n".join([" @".join([student["name"], student["nickname"]]) for student in students])
     await callback.message.edit_text(text, reply_markup=keyboard)

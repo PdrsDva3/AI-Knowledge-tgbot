@@ -197,7 +197,7 @@ all_grades = ["No_work", "Intern", "Junior", "Middle", "Senior"]
 all_spheres = ["NLP", "CV", "RecSys", "Audio", "Classic_ML", "Any"]
 
 
-async def get_filter_students(grade, sphere):
+async def get_filter_students(grade, sphere, teacher_id):
     connection = db_connection()
     cursor = connection.cursor()
 
@@ -207,27 +207,32 @@ async def get_filter_students(grade, sphere):
         WHERE 
         grade similar to %s and
         sphere similar to %s and
-        show = true
-        """)
-
+        show = true AND NOT EXISTS (
+    SELECT 1 
+    FROM teacher_student 
+    WHERE student.id = teacher_student.id_student
+    and teacher_student.id_teacher = %s
+)""")
         if not grade and sphere:
             cursor.execute(fstudents_query,
-                           ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%"))
+                           ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%",
+                            teacher_id), )
         elif not sphere and grade:
             cursor.execute(fstudents_query,
-                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(all_spheres) + ")%"))
+                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(all_spheres) + ")%",
+                            teacher_id), )
         elif not grade and not sphere:
-            cursor.execute(fstudents_query, ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(all_spheres) + ")%"))
+            cursor.execute(fstudents_query, ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(all_spheres) + ")%",
+                                             teacher_id), )
         else:
             cursor.execute(fstudents_query,
-                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%"))
-
+                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%",
+                            teacher_id), )
         rows = cursor.fetchmany(size=4)
         user_info = [
             {"name": row[0], "grade": row[1], "sphere": row[2], "bio": row[3]}
             for row in rows
         ]
-
         return user_info
 
     except (Exception, psycopg2.DatabaseError) as error:

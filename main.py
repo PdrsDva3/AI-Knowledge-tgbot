@@ -1,19 +1,12 @@
 import asyncio
 import logging
 
-from aiogram.types import Message
-
-from aiogram import types
-from aiogram.filters import Command
-from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-
 import db.migration
-from db.db_student import get_teacher_list
-from db.db_teacher import check_id
+import db.migration
 from config import dp, bot
 
-import db.migration
+# Импорты ниже НЕОБХОДИМЫ для работы бота,
+# здесь указываются все файлы, связанные с испольнением бота
 
 import student.registration.registration
 import student.search.search

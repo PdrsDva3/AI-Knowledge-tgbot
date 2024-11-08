@@ -1,7 +1,8 @@
+"""Поиск без фильтра"""
+
 import random
 
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
 from config import bot, dp
@@ -12,6 +13,12 @@ from teacher.search import keyboard as kb
 
 @dp.callback_query(lambda c: c.data == "new_students_teacher")
 async def cmd_go(callback: CallbackQuery, state: FSMContext):
+    """
+    Обработка основного окна поиска
+    :param callback: CallbackQuery
+    :param state: FSMContext
+    :return: --, меняет сообщение
+    """
     await state.clear()
     await bot.edit_message_text(
         chat_id=callback.message.chat.id,
@@ -24,6 +31,11 @@ async def cmd_go(callback: CallbackQuery, state: FSMContext):
 
 
 async def get_random_student(id: int) -> list[dict]:
+    """
+    Создает массив студентов для прохода по ним
+    :param id: int
+    :return: list[dict]
+    """
     list_ = await get_all_student(id)
     random.shuffle(list_)
     return list_
@@ -92,7 +104,6 @@ async def agree_request(callback: CallbackQuery, state: FSMContext):
 
     list_ = data["list"]
     index_ = data["index"]
-    print(list_)
     user_id = list_[index_]["id"]
     user_info = list_[index_]
 

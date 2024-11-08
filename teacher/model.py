@@ -10,7 +10,7 @@ class Teacher:
     show: bool
     nickname: str
 
-    def __init__(self, id, name, grade, sphere, description, show, nickname):
+    def __init__(self, id: int, name: str, grade: str, sphere: str, description: str, show: bool, nickname: str):
         """
         :param id:  id telegram
         :param name: имя учителя

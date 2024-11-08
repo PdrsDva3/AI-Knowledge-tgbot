@@ -7,7 +7,7 @@ from aiogram.types import CallbackQuery
 from db.db_student import get_filter_teachers
 from student.search import keyboard as kb
 
-from config import dp
+from config import dp, NoneData
 
 
 class Filters(StatesGroup):
@@ -23,8 +23,6 @@ FILTER_DATA = """
 
 Сфера:   {}
 """
-
-NoneData = ""
 
 
 async def print_filters(state: FSMContext):

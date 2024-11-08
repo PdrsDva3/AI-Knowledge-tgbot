@@ -141,8 +141,8 @@ async def print_teacherf(callback: CallbackQuery, state: FSMContext):
         )
 
 
-async def get_random_teachersf(grade, sphere) -> list[dict]:
-    list_ = await get_filter_students(grade, sphere)
+async def get_random_teachersf(grade, sphere, teacher_id) -> list[dict]:
+    list_ = await get_filter_students(grade, sphere, teacher_id)
     random.shuffle(list_)
     return list_
 
@@ -152,9 +152,8 @@ async def searching(callback: CallbackQuery, state: FSMContext):
     teacher_data = await state.get_data()
     gr = teacher_data["grade"]
     sp = teacher_data["sphere"]
-    print(type(sp), sp)
     if "list" not in teacher_data:
-        random_list = await get_random_teachersf(gr, sp)
+        random_list = await get_random_teachersf(gr, sp, callback.from_user.id)
         await state.update_data(list=random_list, index=0)
         await print_teacherf(callback, state)
 

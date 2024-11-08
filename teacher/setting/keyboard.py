@@ -1,5 +1,5 @@
 """
-Этот файл отвечает за создание всех встроенных клавиатур
+Этот файл отвечает за создание клавиатур настроек
 """
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -7,7 +7,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 def setting_teacher() -> InlineKeyboardMarkup:
     """
     Клавиатура выбора настроек
-    :return:
+    :return: InlineKeyboardMarkup
     """
     kb = [
         [
@@ -25,7 +25,7 @@ def setting_teacher() -> InlineKeyboardMarkup:
 def show_setting_teacher() -> InlineKeyboardMarkup:
     """
     клавиатура выбора показывать ли себя
-    :return:
+    :return:InlineKeyboardMarkup
     """
     kb = [
         [
