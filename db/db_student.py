@@ -36,7 +36,7 @@ async def get_all(user_id: int):
         rows = cursor.fetchall()
 
         user_info = [
-            {"id": row[0], "name": row[1], "grade": row[2], "sphere": row[3], "bio": row[4], "show": row[5]}
+            {"id": row[0], "name": row[1], "grade": row[2], "sphere": row[3], "bio": row[4], "show": row[5], "nickname": row[6]}
             for row in rows
         ]
 
@@ -112,14 +112,23 @@ async def update_all(user_id, name, grade, sphere, bio):
             connection.close()
 
 
-async def get_all_teachers():
+async def get_all_teachers(id_student: int):
     connection = db_connection()
     cursor = connection.cursor()
     try:
         get_all_teachers_query = sql.SQL("""
-            SELECT name, grade, sphere, description, id FROM teacher WHERE show = true
-            """)
-        cursor.execute(get_all_teachers_query)
+            SELECT name, grade, sphere, description, id 
+            FROM teacher 
+            WHERE show = true
+            and id != %s
+            and NOT EXISTS (
+                SELECT 1 
+                FROM teacher_student 
+                WHERE teacher.id = teacher_student.id_teacher
+                AND teacher_student.id_student = %s
+                AND teacher_student.id_student != teacher_student.id_teacher
+            )""")
+        cursor.execute(get_all_teachers_query, (id_student, id_student,))
 
         rows = cursor.fetchall()
 
@@ -142,10 +151,11 @@ all_grades = ["No_work", "Intern", "Junior", "Middle", "Senior"]
 all_spheres = ["NLP", "CV", "RecSys", "Audio", "Classic_ML", "Any"]
 
 
-async def get_filter_teachers(grade, sphere):
+async def get_filter_teachers(grade, sphere, id_student):
     """
     :param grade:
     :param sphere:
+    :param id_student:
     :return:
     """
     connection = db_connection()
@@ -153,28 +163,36 @@ async def get_filter_teachers(grade, sphere):
 
     try:
         fteachers_query = sql.SQL("""
-        SELECT name, grade, sphere, description FROM teacher 
+        SELECT name, grade, sphere, description, id FROM teacher 
         WHERE 
         grade similar to %s and
         sphere similar to %s and 
         show = true
-        """)
+        and id != %s
+        AND NOT EXISTS (
+                SELECT 1 
+                FROM teacher_student 
+                WHERE teacher.id = teacher_student.id_teacher
+                AND teacher_student.id_student = %s
+                AND teacher_student.id_student != teacher_student.id_teacher
+        )""")
 
         if not grade and sphere:
             cursor.execute(fteachers_query,
-                           ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%"))
+                           ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%", id_student, id_student))
         elif not sphere and grade:
             cursor.execute(fteachers_query,
-                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(all_spheres) + ")%"))
+                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(all_spheres) + ")%", id_student, id_student))
         elif not grade and not sphere:
-            cursor.execute(fteachers_query, ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(all_spheres) + ")%"))
+            cursor.execute(fteachers_query,
+                           ("%(" + "|".join(all_grades) + ")%", "%(" + "|".join(all_spheres) + ")%", id_student, id_student))
         else:
             cursor.execute(fteachers_query,
-                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%"))
-        # print(("%("+"|".join(grade.split(","))+")%", "%("+"|".join(sphere.split(","))+")%"))
-        rows = cursor.fetchmany(size=4)
+                           ("%(" + "|".join(grade.split(", ")) + ")%", "%(" + "|".join(sphere.split(", ")) + ")%",
+                            id_student, id_student))
+        rows = cursor.fetchall()
         user_info = [
-            {"name": row[0], "grade": row[1], "sphere": row[2], "bio": row[3]}
+            {"name": row[0], "grade": row[1], "sphere": row[2], "bio": row[3], "id": row[4]}
             for row in rows
         ]
 
@@ -256,11 +274,12 @@ async def get_teacher_list(id_student: int):
     try:
         get_all_student_query = sql.SQL("""SELECT name, nickname
 FROM teacher 
-WHERE show = true AND EXISTS (
+WHERE EXISTS (
     SELECT 1 
     FROM teacher_student 
     WHERE teacher.id = teacher_student.id_teacher
     and teacher_student.id_student = %s
+    AND teacher_student.id_student != teacher_student.id_teacher
 )""")
         cursor.execute(get_all_student_query, (id_student,))
 
@@ -301,4 +320,3 @@ async def change_show_student(user_id: int, show: bool):
         if connection:
             cursor.close()
             connection.close()
-

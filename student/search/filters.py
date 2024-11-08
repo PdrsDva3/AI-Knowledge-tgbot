@@ -2,12 +2,13 @@ import random
 
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
-from db.db_student import get_filter_teachers
+from db.db_student import get_filter_teachers, insert_into_ts
+from db.db_teacher import check_id, get_all_student
 from student.search import keyboard as kb
 
-from config import dp, NoneData
+from config import dp, NoneData, bot
 
 
 class Filters(StatesGroup):
@@ -141,8 +142,8 @@ async def print_teacherf(callback: CallbackQuery, state: FSMContext):
         )
 
 
-async def get_random_teachersf(grade, sphere) -> list[dict]:
-    list_ = await get_filter_teachers(grade, sphere)
+async def get_random_teachersf(grade, sphere, id_student) -> list[dict]:
+    list_ = await get_filter_teachers(grade, sphere, id_student)
     random.shuffle(list_)
     return list_
 
@@ -153,7 +154,7 @@ async def searching(callback: CallbackQuery, state: FSMContext):
     gr = teacher_data["grade"]
     sp = teacher_data["sphere"]
     if "list" not in teacher_data:
-        random_list = await get_random_teachersf(gr, sp)
+        random_list = await get_random_teachersf(gr, sp, callback.from_user.id)
         await state.update_data(list=random_list, index=0)
         await print_teacherf(callback, state)
 

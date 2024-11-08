@@ -27,7 +27,7 @@ def migration_up():
     grade       varchar,
     sphere      varchar,
     description varchar,
-    show        bool default false,
+    show        bool default true,
     nickname varchar
 );
 
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS student
     grade       varchar,
     sphere      varchar,
     description varchar,
-    show        bool default false,
+    show        bool default true,
     nickname    varchar
 );
         """)

@@ -32,7 +32,7 @@ def searching_kb() -> InlineKeyboardMarkup:
 
 def fsearching_kb() -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton(text="Принять", callback_data="agree_teacher"),
+        [InlineKeyboardButton(text="Принять", callback_data="agreef_teacher"),
          InlineKeyboardButton(text="Вперед", callback_data="fnext_student")],
         [InlineKeyboardButton(text="Назад", callback_data="filters_teacher")]
 
