@@ -51,6 +51,12 @@ TEACHER_DATA = """
 
 
 async def print_search(callback: CallbackQuery, state: FSMContext):
+    """
+    Меняет сообщение на нового студента
+    :param callback:
+    :param state:
+    :return:
+    """
     data = await state.get_data()
     students_list = data.get("list", [])
     index = data.get("index", 0)
@@ -105,15 +111,15 @@ async def agree_request(callback: CallbackQuery, state: FSMContext):
     list_ = data["list"]
     index_ = data["index"]
     user_id = list_[index_]["id"]
-    user_info = list_[index_]
+    teacher, i = check_id(callback.from_user.id)
 
     buttons = [
         [InlineKeyboardButton(text="Принять", callback_data=f"{callback.from_user.id}_accept_teacher")],
         [InlineKeyboardButton(text="Отказать", callback_data=f"{callback.from_user.id}_deny_teacher")]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    await bot.send_message(user_id, STUDENT_DATA.format(user_info["name"], user_info["grade"],
-                                                        user_info["sphere"], user_info["bio"]), reply_markup=keyboard)
+    await bot.send_message(user_id, STUDENT_DATA.format(teacher.name, teacher.grade,
+                                                        teacher.sphere, teacher.description), reply_markup=keyboard)
 
     RESPONSE_TEACHER_DATA_ACCEPT = """
 Ваша заявка для
