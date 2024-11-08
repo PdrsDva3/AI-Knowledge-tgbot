@@ -251,7 +251,7 @@ async def get_teacher_by_id(user_id: int) -> list[dict]:
             connection.close()
 
 
-async def insert_into_ts(id_teacher: int, id_student: str, nick_teacher: str, nick_student: str) -> None:
+async def insert_into_ts(id_teacher: int, id_student: int, nick_teacher: str, nick_student: str) -> None:
     """
     Добавить в таблицу отношения учитель-ученик данные
     :param id_teacher:

@@ -27,7 +27,7 @@ FILTER_DATA = """
 """
 
 
-async def print_filters(state: FSMContext):
+async def display_filters(state: FSMContext):
     filter_data = await state.get_data()
 
     g = filter_data['grade']
@@ -42,27 +42,26 @@ async def print_filters(state: FSMContext):
 async def cmd_filters(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await state.update_data(grade=NoneData, sphere=NoneData, call=callback)
-    await print_filters(state)
+    await display_filters(state)
 
 
 @dp.callback_query(lambda c: c.data == "returnf")
-async def choice_returning(callback: CallbackQuery, state: FSMContext):
+async def filter_return(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Filters.wait)
-    await print_filters(state)
+    await display_filters(state)
 
 
-# !!!!!!!! grade choice
 @dp.callback_query(lambda c: c.data == "gradef")
-async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Выберите уровень подготовки", reply_markup=kb.fchoose_grade_kb())
+async def choose_grade(callback: CallbackQuery, state: FSMContext):
+    await callback.message.edit_text("Выберите уровень подготовки", reply_markup=kb.fchoose_grade_kb())
     await state.set_state(Filters.grade)
 
 
 @dp.callback_query(lambda c: c.data.split("_")[-1] == "gradef")
-async def process_callback(callback_query: CallbackQuery, state: FSMContext):
+async def choose_grade(callback: CallbackQuery, state: FSMContext):
     filter_data = await state.get_data()
     g = filter_data['grade']
-    tt = " ".join(callback_query.data.split("_")[:-1])
+    tt = " ".join(callback.data.split("_")[:-1])
     if g == NoneData:
         await state.update_data(grade=tt)
     elif tt in g:
@@ -71,33 +70,30 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     else:
         tt = g + ", " + tt
         await state.update_data(grade=tt)
-    await callback_query.message.edit_text(text="Выбрано " + tt + "\n\nВыберите дополнительно или\n "
-                                                                  "нажмите повторно чтобы убрать",
-                                           reply_markup=kb.fchoose_grade_kb())
+    await callback.message.edit_text(text="Выбрано " + tt + "\n\nВыберите дополнительно или\n "
+                                                            "нажмите повторно чтобы убрать",
+                                     reply_markup=kb.fchoose_grade_kb())
     await state.set_state(Filters.wait)
 
-# !!!!!!!!
 
-
-# ///////////// sphere choice
 @dp.callback_query(lambda c: c.data == "spheref")
-async def process_callback(callback_query: CallbackQuery, state: FSMContext):
+async def choose_sphere(callback: CallbackQuery, state: FSMContext):
     filter_data = await state.get_data()
     s = filter_data['sphere']
     if s == NoneData:
-        await callback_query.message.edit_text("Выберите ваши сферы деятельности", reply_markup=kb.fchoose_sphere_kb())
+        await callback.message.edit_text("Выберите ваши сферы деятельности", reply_markup=kb.fchoose_sphere_kb())
     else:
-        await callback_query.message.edit_text("Выбрано " + s + "\n\nВыберите дополнительно или "
-                                                                "нажмите повторно чтобы убрать",
-                                               reply_markup=kb.fchoose_sphere_kb())
+        await callback.message.edit_text("Выбрано " + s + "\n\nВыберите дополнительно или "
+                                                          "нажмите повторно чтобы убрать",
+                                         reply_markup=kb.fchoose_sphere_kb())
     await state.set_state(Filters.sphere)
 
 
 @dp.callback_query(lambda c: c.data.split("_")[-1] == "spheref")
-async def process_callback(callback_query: CallbackQuery, state: FSMContext):
+async def choose_sphere(callback: CallbackQuery, state: FSMContext):
     filter_data = await state.get_data()
     s = filter_data['sphere']
-    tt = " ".join(callback_query.data.split("_")[:-1])
+    tt = " ".join(callback.data.split("_")[:-1])
     if s == NoneData:
         await state.update_data(sphere=tt)
     elif tt in s:
@@ -106,13 +102,10 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     else:
         tt = s + ", " + tt
         await state.update_data(sphere=tt)
-    await callback_query.message.edit_text(text="Выбрано " + tt + "\n\nВыберите дополнительно или\n "
-                                                                  "нажмите повторно чтобы убрать",
-                                           reply_markup=kb.fchoose_sphere_kb())
+    await callback.message.edit_text(text="Выбрано " + tt + "\n\nВыберите дополнительно или\n "
+                                                            "нажмите повторно чтобы убрать",
+                                     reply_markup=kb.fchoose_sphere_kb())
     await state.set_state(Filters.wait)
-
-
-# /////////////
 
 
 TEACHER_DATAf = """
@@ -124,7 +117,7 @@ TEACHER_DATAf = """
 """
 
 
-async def print_teacherf(callback: CallbackQuery, state: FSMContext):
+async def display_filter_teachers(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     teacher_list = data.get("list", [])
     index = data.get("index", 0)
@@ -157,7 +150,7 @@ async def searching(callback: CallbackQuery, state: FSMContext):
     if "list" not in teacher_data:
         random_list = await get_random_teachersf(gr, sp, callback.from_user.id)
         await state.update_data(list=random_list, index=0)
-        await print_teacherf(callback, state)
+        await display_filter_teachers(callback, state)
 
 
 @dp.callback_query(lambda c: c.data == "fnext_teacher")
@@ -166,4 +159,4 @@ async def searching_next(callback: CallbackQuery, state: FSMContext):
     index = data.get("index", 0) + 1
 
     await state.update_data(index=index)
-    await print_teacherf(callback, state)
+    await display_filter_teachers(callback, state)

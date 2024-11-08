@@ -39,7 +39,7 @@ TEACHER_DATA = """
 """
 
 
-async def print_teacher(callback: CallbackQuery, state: FSMContext):
+async def display_teachers(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     teacher_list = data.get("list", [])
     index = data.get("index", 0)
@@ -64,7 +64,7 @@ async def searching(callback: CallbackQuery, state: FSMContext):
     # if "list" not in teacher_data:
     random_list = await get_random_teachers(callback.from_user.id)
     await state.update_data(list=random_list, index=0)
-    await print_teacher(callback, state)
+    await display_teachers(callback, state)
 
 
 @dp.callback_query(lambda c: c.data == "next_teacher")
@@ -73,7 +73,7 @@ async def searching_next(callback: CallbackQuery, state: FSMContext):
     index = data.get("index", 0) + 1
 
     await state.update_data(index=index)
-    await print_teacher(callback, state)
+    await display_teachers(callback, state)
 
 
 STUDENT_DATA = """
@@ -109,7 +109,7 @@ async def agree_request(callback: CallbackQuery, state: FSMContext):
     await callback.answer(text="Заявка отправлена")
 
     await state.update_data(index=index)
-    await print_teacher(callback, state)
+    await display_teachers(callback, state)
 
 
 RESPONSE_TEACHER_DATA_ACCEPT = """
@@ -138,7 +138,7 @@ RESPONSE_TEACHER_DATA_DENY = """
 """
 
 @dp.callback_query(lambda c: c.data.split("_")[-1] == "accept")
-async def deny_request(callback: CallbackQuery):
+async def accept_request(callback: CallbackQuery):
     buttons = [
         [InlineKeyboardButton(text="Ок", callback_data="ok")],
     ]
@@ -150,7 +150,8 @@ async def deny_request(callback: CallbackQuery):
     teacher_info = (await get_teacher_by_id(teacher_id))[0]
     student_info = (await get_all(student_id))[0]
 
-    await insert_into_ts(teacher_id, student_id, callback.from_user.username, student_info["nickname"])
+    await insert_into_ts(teacher_id, student_id, callback.from_user.username,
+                         student_info["nickname"]) # тут происходит какая-то магия почему запрос ломается никто не знает
 
     await bot.send_message(student_id,
                            RESPONSE_TEACHER_DATA_ACCEPT.format(teacher_info["name"], teacher_info["grade"],
