@@ -69,6 +69,8 @@ INFO_TEXT = """
     Регистрация/изменение данных - заполнить или изменить свою информацию.
 
     GO! - поиск учителей
+    
+    Видимость - показывать ли меня учителям
 
     Список учителей - список всех принятых учителей
 """
@@ -84,16 +86,6 @@ async def cmd_start(message: Message):
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
     await message.answer("Здраствуйте", reply_markup=keyboard)
 
-
-INFO_TEXT = """
-Здесь ты можешь увидеть описание своих возможностей как студента.
-
-    Регистрация/изменение данных - заполнить или изменить свою информацию.
-
-    GO! - поиск учителей
-
-    Список учителей - список всех принятых учителей
-"""
 
 
 @dp.callback_query(lambda query: query.data == "info")
@@ -111,7 +103,7 @@ async def student_info(callback: CallbackQuery):
     list_ = await get_teacher_list(callback.from_user.id)
 
     TEACHER_LIST = "Список ваших учителей:\n"
-    if not list_:
+    if list_:
         for tch in list_:
             TEACHER_LIST += f"{tch["name"]} - {tch['nickname']}\n"
     else:

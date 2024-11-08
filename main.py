@@ -18,6 +18,7 @@ import db.migration
 import student.registration.registration
 import student.search.search
 import student.search.filters
+import student.setting.setting
 
 import teacher.registration.registration
 import teacher.search.search

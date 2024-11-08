@@ -36,7 +36,7 @@ async def get_all(user_id: int):
         rows = cursor.fetchall()
 
         user_info = [
-            {"id": row[0], "name": row[1], "grade": row[2], "sphere": row[3], "bio": row[4]}
+            {"id": row[0], "name": row[1], "grade": row[2], "sphere": row[3], "bio": row[4], "show": row[5]}
             for row in rows
         ]
 
@@ -278,3 +278,27 @@ WHERE show = true AND EXISTS (
         if connection:
             cursor.close()
             connection.close()
+
+
+async def change_show_student(user_id: int, show: bool):
+    connection = db_connection()
+    cursor = connection.cursor()
+    try:
+        update_query = sql.SQL("""
+                UPDATE student 
+                SET show = %s
+                WHERE id = %s
+            """)
+        cursor.execute(update_query, (
+            show, user_id
+        ))
+        cursor.connection.commit()
+        return True
+    except (Exception, psycopg2.DatabaseError) as error:
+        return False
+
+    finally:
+        if connection:
+            cursor.close()
+            connection.close()
+
