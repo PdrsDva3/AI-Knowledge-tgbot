@@ -11,7 +11,7 @@ async def searching_next(callback: CallbackQuery):
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     students = await get_all_data_all_student(callback.from_user.id)
-    TEACHER_LIST = "ваши студенты:"
+    TEACHER_LIST = "Ваши студенты:\n"
     for student in students:
         TEACHER_LIST += (f"Имя:       {student["name"]}\n"
                          f"Уровень:   {student['grade']}\n"
