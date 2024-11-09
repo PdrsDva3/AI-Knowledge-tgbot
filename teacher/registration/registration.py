@@ -1,21 +1,13 @@
 """Реализация регистрации"""
 from aiogram.filters import StateFilter
-# \registration
-# 0) Учитель/ученик/both
-# 1) Имя
-# 2) Грейд: no_work, intern, junior, middle. senior
-# 3) Сфера: NLP, CV,RecSys, Audio, Classic ML, любой
-# 4) Текстовое описание себя
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery, Message, InlineKeyboardButton, InlineKeyboardMarkup
 
 import teacher.model
-from db.db_teacher import check_id, add_user
-
 import teacher.registration.keyboard as kb
-# from main import dp
-from config import TOKEN_TG, dp, bot, router, NoneData
+from config import dp, NoneData
+from db.db_teacher import check_id, add_user
 
 
 class RegistrateTeacher(StatesGroup):

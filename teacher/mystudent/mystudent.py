@@ -11,16 +11,16 @@ async def searching_next(callback: CallbackQuery):
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     students = await get_all_data_all_student(callback.from_user.id)
-    TEACHER_LIST = "ваши студенты:"
+    STUDENT_LIST = "ваши студенты:\n"
     for student in students:
-        TEACHER_LIST += (f"Имя:       {student["name"]}\n"
+        STUDENT_LIST += (f"Имя:       {student["name"]}\n"
                          f"Уровень:   {student['grade']}\n"
                          f"Сфера:     {student['sphere']}\n"
                          f"Краткий рассказ: \n{student["bio"]}\n"
                          f"Для связи:  @{student['nickname']}\n\n")
 
-    if TEACHER_LIST == "ваши студенты:":
+    if STUDENT_LIST == "ваши студенты:":
         text = "У вас нет учеников"
     else:
-        text = TEACHER_LIST
+        text = STUDENT_LIST
     await callback.message.edit_text(text, reply_markup=keyboard)

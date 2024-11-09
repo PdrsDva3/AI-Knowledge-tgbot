@@ -41,7 +41,7 @@ async def get_random_student(usr_id: int) -> list[dict]:
     return list_
 
 
-TEACHER_DATA = """
+STUDENT_DATA = """
 Имя:    {}
 Уровень:    {}
 Сфера:    {}
@@ -62,9 +62,9 @@ async def print_search(callback: CallbackQuery, state: FSMContext):
     index = data.get("index", 0)
 
     if index < len(students_list):
-        teacher = students_list[index]
+        student = students_list[index]
         await callback.message.edit_text(
-            text=TEACHER_DATA.format(teacher["name"], teacher["grade"], teacher["sphere"], teacher["bio"]),
+            text=STUDENT_DATA.format(student["name"], student["grade"], student["sphere"], student["bio"]),
             reply_markup=kb.searching_kb()
         )
     else:
@@ -76,9 +76,6 @@ async def print_search(callback: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "search_students")
 async def searching(callback: CallbackQuery, state: FSMContext):
-    # бесполезные строки, но могут помочь при развитии функционала (state чистится в cmd_go)
-    # teacher_data = await state.get_data()
-    # if "list" not in teacher_data:
     random_list = await get_random_student(callback.from_user.id)
     await state.update_data(list=random_list, index=0)
     await print_search(callback, state)
@@ -111,15 +108,15 @@ async def agree_request(callback: CallbackQuery, state: FSMContext):
     list_ = data["list"]
     index_ = data["index"]
     user_id = list_[index_]["id"]
-    teacher, i = check_id(callback.from_user.id)
+    student, i = check_id(callback.from_user.id)
 
     buttons = [
         [InlineKeyboardButton(text="Принять", callback_data=f"{callback.from_user.id}_accept_teacher")],
         [InlineKeyboardButton(text="Отказать", callback_data=f"{callback.from_user.id}_deny_teacher")]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    await bot.send_message(user_id, STUDENT_DATA.format(teacher.name, teacher.grade,
-                                                        teacher.sphere, teacher.description), reply_markup=keyboard)
+    await bot.send_message(user_id, STUDENT_DATA.format(student.name, student.grade,
+                                                        student.sphere, student.description), reply_markup=keyboard)
     await callback.answer(text="Заявка отправлена")
     index = data.get("index", 0) + 1
 
@@ -159,11 +156,11 @@ async def deny_request(callback: CallbackQuery):
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
-    teacher_id = callback.from_user.id
-    student_id = int(callback.data.split("_")[0])
-    teacher, i = check_id(student_id)
-    student_info = (await get_all(teacher_id))[0]
-    await insert_into_ts(student_id, teacher_id, teacher.nickname, callback.from_user.username)
+    student_id = callback.from_user.id
+    teacher_id = int(callback.data.split("_")[0])
+    teacher, i = check_id(teacher_id)
+    student_info = (await get_all(student_id))[0]
+    await insert_into_ts(teacher_id, student_id, teacher.nickname, callback.from_user.username)
 
     await bot.send_message(student_id,
                            RESPONSE_TEACHER_DATA_ACCEPT.format(student_info["name"], student_info["grade"],
@@ -181,10 +178,10 @@ async def deny_request(callback: CallbackQuery):
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     student_id = callback.from_user.id
-    teacher_info = (await get_all(student_id))[0]
+    student_info = (await get_all(student_id))[0]
     await bot.send_message(int(callback.data.split("_")[0]),
-                           RESPONSE_TEACHER_DATA_DENY.format(teacher_info["name"], teacher_info["grade"],
-                                                             teacher_info["sphere"], teacher_info["bio"]),
+                           RESPONSE_TEACHER_DATA_DENY.format(student_info["name"], student_info["grade"],
+                                                             student_info["sphere"], student_info["bio"]),
                            reply_markup=keyboard)
 
     await callback.answer(text="Вы отклонили заявку")

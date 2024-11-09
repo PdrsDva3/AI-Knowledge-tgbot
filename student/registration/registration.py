@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import CallbackQuery, Message
 
-from config import dp, bot
+from config import dp, bot, NoneData
 from db.db_student import get_all, update_all, insert_all
 from student.registration import keyboard as kb
 
@@ -31,7 +31,7 @@ DATA = """
 {}
 """
 
-NoneData = ""
+
 
 
 async def display_student(state: FSMContext):
