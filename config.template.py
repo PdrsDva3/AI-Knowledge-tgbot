@@ -8,7 +8,7 @@ dp = Dispatcher()
 router = Router()
 
 DB_NAME = "postgres"
-DB_PORT = 5432
+DB_PORT = 5440
 DB_PASSWORD = "postgres"
 DB_USER = "postgres"
 DB_HOST = "postgres"

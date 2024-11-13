@@ -8,7 +8,7 @@ services:
     container_name: telegram-bot
     environment:
       - DB_HOST=postgres  # Сервис базы данных
-      - DB_PORT=5432  # Порт базы данных
+      - DB_PORT=5440  # Порт базы данных
       - DB_NAME=postgres  # Имя базы данных
       - DB_USER=postgres  # Имя пользователя
       - DB_PASSWORD=postgres  # Пароль для пользователя
@@ -31,7 +31,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data  # Монтируем volume для хранения данных
     ports:
-      - "5432:5432"  # Прокси порт 5432
+      - "5440:5440"  # Прокси порт 5440
     networks:
       - bot_network
     restart: always
