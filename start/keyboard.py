@@ -16,10 +16,10 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 def info_and_continue_kb() -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton(text="Регистрация", callback_data="registration")],
-        [InlineKeyboardButton(text="GO!", callback_data="cmd_go")],
+        [InlineKeyboardButton(text="Поиск", callback_data="cmd_go")],
         [InlineKeyboardButton(text="Видимость", callback_data="setting_student")],
-        [InlineKeyboardButton(text="Список учителей", callback_data="teacher_list")],
-        [InlineKeyboardButton(text="return", callback_data="return_to_start")]
+        [InlineKeyboardButton(text="Список твоих интервьюеров", callback_data="teacher_list")],
+        [InlineKeyboardButton(text="Вернуться к выбору роли", callback_data="return_to_start")]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard

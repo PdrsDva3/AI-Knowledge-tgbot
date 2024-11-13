@@ -28,9 +28,9 @@ class RegistrateTeacher(StatesGroup):
 
 DATA = """
 Ваши данные
-Имя:         {}
-Уровень:     {}
-Сфера:       {}
+Имя: {}
+Уровень: {}
+Сфера: {}
 Описание: 
 {}
 """
@@ -79,7 +79,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "grade_teacher")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Ввыберите ваш уровень", reply_markup=kb.grade_teacher())
+    await callback_query.message.edit_text("Выберите уровень вышей квалификации", reply_markup=kb.grade_teacher())
     await state.set_state(RegistrateTeacher.grade)
 
 
@@ -95,7 +95,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
     s = user_data['sphere']
     if s == NoneData:
-        await callback_query.message.edit_text("Выберите ваши сферы деятельности", reply_markup=kb.sphere_teacher())
+        await callback_query.message.edit_text("Выберите сферы AI, в которых вы специализируетесь", reply_markup=kb.sphere_teacher())
     else:
         await callback_query.message.edit_text("Выбрано " + s + "\nВыберите дополнительно или "
                                                                 "нажмите повторно чтобы убрать",
@@ -116,7 +116,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     else:
         tt = s + ", " + tt
         await state.update_data(sphere=tt)
-    await callback_query.message.edit_text(text="Выбрано " + tt + "\nВыберите дополнительно или "
+    await callback_query.message.edit_text(text="Выбрано: " + tt + "\nВыберите дополнительно или "
                                                                   "нажмите повторно чтобы убрать",
                                            reply_markup=kb.sphere_teacher())
     await state.set_state(RegistrateTeacher.wait)
@@ -124,7 +124,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "description_teacher")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Введите ваше описание", reply_markup=kb.reg_return_teacher())
+    await callback_query.message.edit_text("Расскажите немного о себе для вашего будущего собеседника", reply_markup=kb.reg_return_teacher())
     await state.set_state(RegistrateTeacher.description)
 
 

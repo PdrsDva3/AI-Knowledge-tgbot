@@ -31,7 +31,7 @@ def sphere_teacher() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="Any", callback_data="Any_sphere_teacher"),
         ],
         [
-            InlineKeyboardButton(text="return", callback_data="return_reg_teacher"),
+            InlineKeyboardButton(text="Вернуться", callback_data="return_reg_teacher"),
         ]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
@@ -45,22 +45,22 @@ def grade_teacher() -> InlineKeyboardMarkup:
     """
     kb = [
         [
-            InlineKeyboardButton(text="no work", callback_data="no_work_grade_teacher")
+            InlineKeyboardButton(text="Без грейда", callback_data="no_work_grade_teacher")
         ],
         [
-            InlineKeyboardButton(text="intern", callback_data="intern_grade_teacher")
+            InlineKeyboardButton(text="Intern", callback_data="intern_grade_teacher")
         ],
         [
-            InlineKeyboardButton(text="junior", callback_data="junior_grade_teacher")
+            InlineKeyboardButton(text="Junior", callback_data="junior_grade_teacher")
         ],
         [
-            InlineKeyboardButton(text="middle", callback_data="middle_grade_teacher")
+            InlineKeyboardButton(text="Middle", callback_data="middle_grade_teacher")
         ],
         [
-            InlineKeyboardButton(text="senior", callback_data="senior_grade_teacher")
+            InlineKeyboardButton(text="Senior", callback_data="senior_grade_teacher")
         ],
         [
-            InlineKeyboardButton(text="return", callback_data="return_reg_teacher"),
+            InlineKeyboardButton(text="Вернуться", callback_data="return_reg_teacher"),
         ]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
@@ -130,7 +130,7 @@ def reg_return_teacher() -> InlineKeyboardMarkup:
     """
     kb = [
         [
-            InlineKeyboardButton(text="return", callback_data="return_reg_teacher"),
+            InlineKeyboardButton(text="Вернуться", callback_data="return_reg_teacher"),
         ]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)

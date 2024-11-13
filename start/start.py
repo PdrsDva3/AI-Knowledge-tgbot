@@ -21,7 +21,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
             ]]
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
-        await callback_query.message.edit_text("Здраствуйте, пройдите регистрацию", reply_markup=keyboard)
+        await callback_query.message.edit_text("Здраствуйте, сначала пройдите регистрацию", reply_markup=keyboard)
     else:
         kb = [
             [
@@ -51,40 +51,44 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
             DATA.format(user.name, user.grade, user.sphere, user.description),
             reply_markup=keyboard)
 
+start_message = """Привет! Это бот от AI Knowledge Club для поиска собеседований и мок-интервью⚡️
+
+Выберите свою роль:
+"""
 
 @dp.callback_query(lambda c: c.data == "return_to_start")
 async def cmd_start(callback_query: CallbackQuery):
     kb = [
-        [InlineKeyboardButton(text="student", callback_data="info")],
-        [InlineKeyboardButton(text="teacher", callback_data="start")],
+        [InlineKeyboardButton(text="Хочу пройти собеседование", callback_data="info")],
+        [InlineKeyboardButton(text="Хочу провести собеседование", callback_data="start")],
     ]
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
-    await callback_query.message.edit_text("Здраствуйте", reply_markup=keyboard)
+    await callback_query.message.edit_text(start_message, reply_markup=keyboard)
 
 
 INFO_TEXT = """
-Здесь ты можешь увидеть описание своих возможностей как студента.
+Вот список функций, которые вы можете использовать для поиска собеседований:
 
-    Регистрация/изменение данных - заполнить или изменить свою информацию.
+⚙️ Регистрация/изменение данных - заполнить или изменить свою информацию.
 
-    GO! - поиск учителей
-    
-    Видимость - показывать ли меня учителям
+🔍 Поиск - поиск людей, с которыми можно пройти собеседование
 
-    Список учителей - список всех принятых учителей
+👀 Видимость - показывать ли мою анкету другим людям
+
+📋 Список твоих интервьюеров - список людей, которые взяли тебя на собеседование
 """
 
 
 @dp.message(Command("start"))
 async def cmd_start(message: Message):
     kb = [
-        [InlineKeyboardButton(text="student", callback_data="info")],
-        [InlineKeyboardButton(text="teacher", callback_data="start")],
+        [InlineKeyboardButton(text="Хочу пройти собеседование", callback_data="info")],
+        [InlineKeyboardButton(text="Хочу провести собеседование", callback_data="start")],
     ]
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
-    await message.answer("Здраствуйте", reply_markup=keyboard)
+    await message.answer(start_message, reply_markup=keyboard)
 
 
 
