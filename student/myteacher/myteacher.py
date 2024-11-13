@@ -11,16 +11,16 @@ from db.db_student import get_teacher_list
 async def student_info(callback: CallbackQuery):
     list_ = await get_teacher_list(callback.from_user.id)
 
-    TEACHER_LIST = "Список ваших учителей:\n"
+    TEACHER_LIST = "Список людей, которые согласились тебя пособесить:\n"
     if list_:
         for tch in list_:
-            TEACHER_LIST += (f"Имя: \t\t\t\t{tch["name"]}\n"
-                             f"Уровень: \t\t\t\t{tch['grade']}\n"
-                             f"Сфера: \t\t\t\t{tch['sphere']}\n"
-                             f"Краткий рассказ: \n{tch['description']}\n"
-                             f"Для связи: \t\t\t\t{tch['nickname']}\n\n")
+            TEACHER_LIST += (f"Имя: {tch["name"]}\n"
+                             f"Уровень: {tch['grade']}\n"
+                             f"Сфера: {tch['sphere']}\n"
+                             f"\n\n{tch['description']}\n"
+                             f"Для связи: @{tch['nickname']}\n\n")
     else:
-        TEACHER_LIST = "У вас пока нет учителей"
+        TEACHER_LIST = "Ваш список пуст"
 
     buttons = [
         [InlineKeyboardButton(text="Назад", callback_data="info")]

@@ -72,7 +72,7 @@ def choose_sphere_kb() -> InlineKeyboardMarkup:
 # no_work, intern, junior, middle. senior
 def choose_grade_kb() -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton(text="No work", callback_data="no_work_grade")],
+        [InlineKeyboardButton(text="Без грейда", callback_data="no_work_grade")],
         [InlineKeyboardButton(text="Intern", callback_data="intern_grade")],
         [InlineKeyboardButton(text="Junior", callback_data="junior_grade")],
         [InlineKeyboardButton(text="Middle", callback_data="middle_grade")],
@@ -94,10 +94,10 @@ def return_kb() -> InlineKeyboardMarkup:
 def info_and_continue_kb() -> InlineKeyboardMarkup:
     buttons = [
         [InlineKeyboardButton(text="Регистрация", callback_data="registration")],
-        [InlineKeyboardButton(text="GO!", callback_data="cmd_go")],
+        [InlineKeyboardButton(text="Поиск", callback_data="cmd_go")],
         [InlineKeyboardButton(text="Видимость", callback_data="setting_student")],
-        [InlineKeyboardButton(text="Список учителей", callback_data="teacher_list")],
-        [InlineKeyboardButton(text="return", callback_data="return_to_start")]
+        [InlineKeyboardButton(text="Список людей, которые хотят вас пособесить", callback_data="teacher_list")],
+        [InlineKeyboardButton(text="Назад", callback_data="return_to_start")]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard

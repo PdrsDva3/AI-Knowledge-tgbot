@@ -20,14 +20,11 @@ class Registration(StatesGroup):
 
 
 DATA = """
-Для продолжения было бы славно заполнить анкету))
-
-Ваша информация на данный момент:
-
-Имя:    {}
-Уровень:    {}
-Сфера:  {}
-Краткий рассказ:
+Ваши данные
+Имя: {}
+Уровень: {}
+Сфера: {}
+Описание: 
 {}
 """
 
@@ -75,20 +72,23 @@ async def return_to_cmd_reg(callback: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "name")
 async def fill_name(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Введите ваше имя", reply_markup=kb.return_kb())
+    await callback.message.edit_text("Введите, как к вам обращаться", reply_markup=kb.return_kb())
     await state.set_state(Registration.name)
     await state.update_data(call=callback)
 
 
 @dp.callback_query(lambda c: c.data == "grade")
 async def choose_grade(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Выберите уровень подготовки", reply_markup=kb.choose_grade_kb())
+    await callback.message.edit_text("Выберите уровень вашей квалификации", reply_markup=kb.choose_grade_kb())
     await state.set_state(Registration.grade)
 
 
 @dp.callback_query(lambda c: c.data.split("_")[-1] == "grade")
 async def choose_grade(callback: CallbackQuery, state: FSMContext):
-    await state.update_data(grade=" ".join(callback.data.split("_")[:-1]).capitalize())
+    tt =  " ".join(callback.data.split("_")[:-1]).capitalize()
+    if tt == "No work":
+        tt = "Без грейда"
+    await state.update_data(grade=tt)
     await display_student(state)
     await state.set_state(Registration.wait)
 
@@ -98,10 +98,9 @@ async def choose_sphere(callback: CallbackQuery, state: FSMContext):
     student_data = await state.get_data()
     s = student_data['sphere']
     if s == NoneData:
-        await callback.message.edit_text("Выберите ваши сферы деятельности", reply_markup=kb.choose_sphere_kb())
+        await callback.message.edit_text("Выберите сферы AI, в которых вы специализируетесь", reply_markup=kb.choose_sphere_kb())
     else:
-        await callback.message.edit_text("Выбрано " + s + "\nВыберите дополнительно или "
-                                                          "нажмите повторно чтобы убрать",
+        await callback.message.edit_text("Выбрано: " + s + "\nВыберите дополнительно или нажмите повторно чтобы убрать",
                                          reply_markup=kb.choose_sphere_kb())
     await state.set_state(Registration.sphere)
 
@@ -119,15 +118,14 @@ async def choose_sphere(callback: CallbackQuery, state: FSMContext):
     else:
         tt = s + ", " + tt
         await state.update_data(sphere=tt)
-    await callback.message.edit_text(text="Выбрано " + tt + "\nВыберите дополнительно или\n "
-                                                            "нажмите повторно чтобы убрать",
+    await callback.message.edit_text(text="Выбрано: " + tt + "\nВыберите дополнительно или нажмите повторно чтобы убрать",
                                      reply_markup=kb.choose_sphere_kb())
     await state.set_state(Registration.wait)
 
 
 @dp.callback_query(lambda c: c.data == "bio")
 async def fill_bio(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("Введите краткий рассказ", reply_markup=kb.return_kb())
+    await callback.message.edit_text("Расскажите немного о себе для вашего будущего собеседника", reply_markup=kb.return_kb())
     await state.set_state(Registration.bio)
     await state.update_data(call=callback)
 
@@ -149,16 +147,17 @@ async def end_fill_bio(message: Message, state: FSMContext):
 
 
 ALL_OKAY_TEXT = """
-Регистрация успешно завершена.
-Все изменения внесены)
+Регистрация успешно завершена, все изменения внесены
     
-    Регистрация/изменение данных - заполнить или изменить свою информацию.
-    
-    GO! - поиск учителей
-    
-    Видимость - показывать ли меня учителям
-    
-    Список учителей - список всех принятых учителей
+Вот список функций, которые вы можете использовать для поиска собеседований:
+
+⚙️ Регистрация/изменение данных - заполнить или изменить свою информацию.
+
+🔍 Поиск - поиск людей, с которыми можно пройти собеседование
+
+👀 Видимость - показывать ли мою анкету другим людям
+
+📋 Список твоих интервьюеров - список людей, которые взяли тебя на собеседование
 """
 
 

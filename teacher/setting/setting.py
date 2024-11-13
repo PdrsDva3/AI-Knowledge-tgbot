@@ -9,8 +9,7 @@ from config import dp
 from db.db_teacher import check_id
 
 DATA = """
-Ваши настройки
-show me {}
+Показывать ли мою анкету - {}
 """
 
 
@@ -24,6 +23,7 @@ async def do_text(state: FSMContext):
     show = user_data["show"]
     call = user_data['call']
     db.db_teacher.change_show(call.from_user.id, show)
+    show = "Да" if show else "Нет"
     await call.message.edit_text(DATA.format(show),
                                  reply_markup=kb.setting_teacher())
 

@@ -18,8 +18,7 @@ class RegistrateTeacher(StatesGroup):
 
 
 DATA = """
-Ваши настройки
-Показывать меня: {}
+Показывать ли мою анкету - {}
 """
 
 
@@ -28,6 +27,7 @@ async def do_text(state: FSMContext):
     show = user_data["show"]
     call = user_data['call']
     await db.db_student.change_show_student(call.from_user.id, show)
+    show = "Да" if show else "Нет"
     await call.message.edit_text(DATA.format(show),
                                  reply_markup=kb.setting_student())
 
@@ -41,7 +41,7 @@ async def start_registration(call: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "show_setting")
 async def start_registration(call: CallbackQuery, state: FSMContext):
-    await call.message.edit_text("Показывать?", reply_markup=kb.show_setting_student())
+    await call.message.edit_text("Выберите, показывать ли вас среди списка учителей", reply_markup=kb.show_setting_student())
     await state.set_state(RegistrateTeacher.show)
 
 

@@ -11,10 +11,10 @@ def setting_teacher() -> InlineKeyboardMarkup:
     """
     kb = [
         [
-            InlineKeyboardButton(text="show me", callback_data="show_setting_teacher"),
+            InlineKeyboardButton(text="Изменить статус видимости", callback_data="show_setting_teacher"),
         ],
         [
-            InlineKeyboardButton(text="return", callback_data="start"),
+            InlineKeyboardButton(text="Вернуться", callback_data="start"),
         ]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
@@ -29,8 +29,8 @@ def show_setting_teacher() -> InlineKeyboardMarkup:
     """
     kb = [
         [
-            InlineKeyboardButton(text="Yes", callback_data="show_true_teacher"),
-            InlineKeyboardButton(text="No", callback_data="show_false_teacher"),
+            InlineKeyboardButton(text="Да", callback_data="show_true_teacher"),
+            InlineKeyboardButton(text="Нет", callback_data="show_false_teacher"),
         ]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)

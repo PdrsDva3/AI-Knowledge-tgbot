@@ -42,10 +42,12 @@ async def get_random_student(usr_id: int) -> list[dict]:
 
 
 TEACHER_DATA = """
-Имя:    {}
-Уровень:    {}
-Сфера:    {}
-Краткий рассказ:
+Анкета
+
+Имя: {}
+Уровень: {}
+Сфера: {}
+
 {}
 """
 
@@ -69,7 +71,7 @@ async def print_search(callback: CallbackQuery, state: FSMContext):
         )
     else:
         await callback.message.edit_text(
-            text="студенты закончились((",
+            text="Новых анкет нет",
             reply_markup=kb.return_go_kb()
         )
 
@@ -94,12 +96,12 @@ async def searching_next(callback: CallbackQuery, state: FSMContext):
 
 
 STUDENT_DATA = """
-Новая заявка от учителя
+Новая заявка! Этот человек хочет провести с вами собеседование:
 
 Имя:    {}
 Уровень:    {}
 Сфера:    {}
-Краткий рассказ:
+
 {}
 """
 
@@ -128,12 +130,12 @@ async def agree_request(callback: CallbackQuery, state: FSMContext):
 
 
 RESPONSE_TEACHER_DATA_ACCEPT = """
-Ваша заявка для ученика
+Ваша заявка на интервью от
 
-Имя:       {}
-Уровень:   {}
-Сфера:     {}
-Краткий рассказ:
+Имя: {}
+Уровень: {}
+Сфера: {}
+
 {}
 
 была ПРИНЯТА
@@ -141,12 +143,12 @@ RESPONSE_TEACHER_DATA_ACCEPT = """
 """
 
 RESPONSE_TEACHER_DATA_DENY = """
-Ваша заявка для ученика
+Ваша заявка на интервью от
 
 Имя:       {}
 Уровень:   {}
 Сфера:     {}
-Краткий рассказ:
+
 {}
 
 была ОТКЛОНЕНА

@@ -25,28 +25,30 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     else:
         kb = [
             [
-                InlineKeyboardButton(text="изменить данные", callback_data="teacher"),
+                InlineKeyboardButton(text="Изменить анкету", callback_data="teacher"),
             ],
             [
-                InlineKeyboardButton(text="setting", callback_data="setting_teacher"),
+                InlineKeyboardButton(text="⚙️ Настройки", callback_data="setting_teacher"),
             ],
             [
-                InlineKeyboardButton(text="new students", callback_data="new_students_teacher"),
+                InlineKeyboardButton(text="🔍 Поиск собеседника", callback_data="new_students_teacher"),
             ],
             [
-                InlineKeyboardButton(text="my students", callback_data="my_students_teacher"),
+                InlineKeyboardButton(text="Люди которых вы хотите собеседовать", callback_data="my_students_teacher"),
             ],
-            [InlineKeyboardButton(text="return", callback_data="return_to_start")]
+            [InlineKeyboardButton(text="Вернуться", callback_data="return_to_start")]
         ]
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
         DATA = """
-                Здраствуйте,
-                Имя        {}
-                Уровень       {}
-                Сфера      {}
-                Описание {}
-                """
+                Привет! Твоя анкета:
+
+Имя: {}
+Уровень: {}
+Сфера: {}
+Описание: 
+{}
+"""
         await callback_query.message.edit_text(
             DATA.format(user.name, user.grade, user.sphere, user.description),
             reply_markup=keyboard)

@@ -79,13 +79,16 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(lambda c: c.data == "grade_teacher")
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await callback_query.message.edit_text("Выберите уровень вышей квалификации", reply_markup=kb.grade_teacher())
+    await callback_query.message.edit_text("Выберите уровень вашей квалификации", reply_markup=kb.grade_teacher())
     await state.set_state(RegistrateTeacher.grade)
 
 
 @dp.callback_query(lambda c: c.data.split("_")[-2:] == ["grade", "teacher"])
 async def process_callback(callback_query: CallbackQuery, state: FSMContext):
-    await state.update_data(grade=" ".join(callback_query.data.split("_")[:-2]).capitalize())
+    tt = " ".join(callback_query.data.split("_")[:-2]).capitalize()
+    if tt == "No work":
+        tt = "Без грейда"
+    await state.update_data(grade=tt)
     await do_text(state)
     await state.set_state(RegistrateTeacher.wait)
 
@@ -97,8 +100,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     if s == NoneData:
         await callback_query.message.edit_text("Выберите сферы AI, в которых вы специализируетесь", reply_markup=kb.sphere_teacher())
     else:
-        await callback_query.message.edit_text("Выбрано " + s + "\nВыберите дополнительно или "
-                                                                "нажмите повторно чтобы убрать",
+        await callback_query.message.edit_text("Выбрано: " + s + "\nВыберите дополнительно или нажмите повторно чтобы убрать",
                                                reply_markup=kb.sphere_teacher())
     await state.set_state(RegistrateTeacher.sphere)
 
@@ -116,8 +118,7 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
     else:
         tt = s + ", " + tt
         await state.update_data(sphere=tt)
-    await callback_query.message.edit_text(text="Выбрано: " + tt + "\nВыберите дополнительно или "
-                                                                  "нажмите повторно чтобы убрать",
+    await callback_query.message.edit_text(text="Выбрано: " + tt + "\nВыберите дополнительно или нажмите повторно чтобы убрать",
                                            reply_markup=kb.sphere_teacher())
     await state.set_state(RegistrateTeacher.wait)
 
@@ -159,36 +160,38 @@ async def process_callback(callback_query: CallbackQuery, state: FSMContext):
         grade=g,
         sphere=sp,
         description=d,
-        show=False,
+        show=True,
         nickname=callback_query.from_user.username
     )
     add_user(user)
     kb = [
         [
-            InlineKeyboardButton(text="изменить данные", callback_data="teacher"),
+            InlineKeyboardButton(text="Изменить анкету", callback_data="teacher"),
         ],
         [
-            InlineKeyboardButton(text="setting", callback_data="setting_teacher"),
+            InlineKeyboardButton(text="⚙️ Настройки", callback_data="setting_teacher"),
         ],
         [
-            InlineKeyboardButton(text="new students", callback_data="new_students_teacher"),
+            InlineKeyboardButton(text="🔍 Поиск собеседника", callback_data="new_students_teacher"),
         ],
         [
-            InlineKeyboardButton(text="my students", callback_data="my_students_teacher"),
+            InlineKeyboardButton(text="Люди которых вы хотите собеседовать", callback_data="my_students_teacher"),
         ],
         [
-            InlineKeyboardButton(text="help", callback_data="help"),
+            InlineKeyboardButton(text="Помощь", callback_data="help"),
         ],
-        [InlineKeyboardButton(text="return", callback_data="return_to_start")]
+        [InlineKeyboardButton(text="Вернуться", callback_data="return_to_start")]
     ]
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)
     DATA = """
-Здраствуйте,
-Имя        {}
-Уровень       {}
-Сфера      {}
-Описание {}
+Привет! Твоя анкета:
+
+Имя: {}
+Уровень: {}
+Сфера: {}
+Описание: 
+{}
 """
     await callback_query.message.edit_text(
         DATA.format(user.name, user.grade, user.sphere, user.description),

@@ -70,7 +70,7 @@ def fchoose_sphere_kb() -> InlineKeyboardMarkup:
 # no_work, intern, junior, middle. senior
 def fchoose_grade_kb() -> InlineKeyboardMarkup:
     buttons = [
-        [InlineKeyboardButton(text="No work", callback_data="No_work_gradef_teacher")],
+        [InlineKeyboardButton(text="Без грейда", callback_data="No_work_gradef_teacher")],
         [InlineKeyboardButton(text="Intern", callback_data="Intern_gradef_teacher")],
         [InlineKeyboardButton(text="Junior", callback_data="Junior_gradef_teacher")],
         [InlineKeyboardButton(text="Middle", callback_data="Middle_gradef_teacher")],

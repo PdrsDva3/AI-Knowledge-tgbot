@@ -11,10 +11,10 @@ def setting_student() -> InlineKeyboardMarkup:
     """
     kb = [
         [
-            InlineKeyboardButton(text="Изменить видимость", callback_data="show_setting"),
+            InlineKeyboardButton(text="Изменить статус видимости", callback_data="show_setting"),
         ],
         [
-            InlineKeyboardButton(text="return", callback_data="info"),
+            InlineKeyboardButton(text="Вернуться", callback_data="info"),
         ]
     ]
     keyboard = InlineKeyboardMarkup(inline_keyboard=kb)

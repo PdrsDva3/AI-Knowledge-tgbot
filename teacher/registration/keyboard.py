@@ -28,7 +28,7 @@ def sphere_teacher() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="Classic ML", callback_data="Classic_ML_sphere_teacher"),
         ],
         [
-            InlineKeyboardButton(text="Any", callback_data="Any_sphere_teacher"),
+            InlineKeyboardButton(text="Любая", callback_data="Any_sphere_teacher"),
         ],
         [
             InlineKeyboardButton(text="Вернуться", callback_data="return_reg_teacher"),
